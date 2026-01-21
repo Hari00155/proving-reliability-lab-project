@@ -45,9 +45,14 @@
         </ul>
       </div>
     </div>
-  </nav>
+  </nav> 
+  <footer>
+  <div class="container text-center">
+    <p class="mb-1">Lucas TVS Proving & Reliability Lab</p>
+    <small>Ensuring Quality & Reliability</small>
+  </div>
+</footer>
 </template>
-
 <script setup>
 // No script logic needed for this basic example.
 // Ensure Bootstrap CSS and JS are imported in your main.js or index.html
