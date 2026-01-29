@@ -6,12 +6,12 @@
 
   <!-- Main Background Image -->
   <div class="card border-0">
-    <img src="/images/mainbg.png" class="card-img-top" alt="Lab Background">
+    <img src="/images/mainbg.png" class="card-img-mid" alt="Lab Background">
   </div>
 
   <!-- Department Cards -->
   <div class="container my-5">
-    <div class="row row-cols-1 row-cols-md-2 g-4">
+    <div class="row row-cols-1 row-cols-md-4 g-4">
 
       <!-- Environment Testing -->
       <div class="col">
@@ -58,7 +58,7 @@
       <!-- Starter Testing -->
       <div class="col">
         <div class="card h-100 shadow">
-          <img src="/images/startertestingmain.png" class="card-img-top" alt="Starter Testing">
+          <img src="D:\full-stack-developer\proving-reliability-lab-project\images\Startertestingmain.png" class="card-img-top" alt="Starter Testing">
           <div class="card-body">
             <h5 class="card-title">STARTER TESTING</h5>
             <p class="card-text">
@@ -71,6 +71,15 @@
 
     </div>
   </div>
+
+    <!--Customer-->
+  <div>
+    <header class="text-center">
+    <h2><b>CUSTOMERS</b></h2>
+  </header>
+  <img src="D:\full-stack-developer\proving-reliability-lab-project\images\customerbg.png" class="card-img-top" alt="Lab Background">
+  </div>
+
 
   <!-- Footer -->
   <footer class="bg-dark text-light py-3">
