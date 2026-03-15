@@ -1,156 +1,338 @@
 <template>
-  <!-- Full-width sky blue background -->
-  <div class="bg-info-subtle text-info-emphasis py-5">
-    <!-- Inner container to center the form nicely -->
-    <div class="container bg-white p-5 rounded-4 shadow">
-      <h1>Staffs Form</h1>
 
-      <RouterLink to="/staffs/update">To update a staff</RouterLink>
+<!-- HEADER -->
+<header class="title-bar">
+<h2>ENVIRONMENT TESTING </h2>
+<p>Reliability validation of automotive components under extreme environmental conditions</p>
+</header>
 
-      <form class="row g-3 needs-validation" @submit.prevent="handleSubmit">
-        <div class="col-md-6">
-          <label for="inputFirstName" class="form-label">First Name</label>
-          <input type="text" class="form-control" id="inputFirstName" required v-model="formData.firstName" />
-          {{ formData.firstName }}
-        </div>
+<div class="container my-5">
 
-        <div class="col-md-6">
-          <label for="inputLastName" class="form-label">Last Name</label>
-          <input type="text" class="form-control" id="inputLastName" required v-model="formData.lastName" />
-          {{ formData.lastName }}
-        </div>
+<!-- ================= VIBRATION ================= -->
 
-        <div class="row mb-3">
-          <label for="colFormLabel" class="col-sm-2 col-form-label">Email</label>
-          <div class="col-sm-10">
-            <input type="email" class="form-control" id="colFormLabel" placeholder="XYZ@Email.com" required
-              v-model="formData.email" />
-            {{ formData.email }}
-          </div>
-        </div>
+<h3 class="section-title">VIBRATION TESTING</h3>
 
-        <div class="col-md-4">
-          <label for="DOB" class="form-label">DOB</label>
-          <input type="date" class="form-control" id="DOB" required v-model="formData.Dob" />
-          {{ formData.Dob }}
-        </div>
+<div class="row row-cols-1 row-cols-md-4 g-4">
 
-        <div class="col-md-4">
-          <label for="Bloodgroup" class="form-label">Blood Group</label>
-          <select id="inputBloodgroup" class="form-select" v-model="formData.bloodgroup">
-            <option selected disabled>Choose...</option>
-            <option>A+</option>
-            <option>A-</option>
-            <option>AB+</option>
-            <option>AB-</option>
-            <option>B+</option>
-            <option>B-</option>
-            <option>O+</option>
-            <option>O-</option>
-          </select>
-          {{ formData.bloodgroup }}
-        </div>
+<!-- 4T -->
+<div class="col">
+<div class="card test-card">
+<img src="D:\full-stack-developer\proving-reliability-lab-project\images\4t.png" class="test-img">
 
-        <div class="col-md-4">
-          <label for="inputAGE" class="form-label">Age</label>
-          <input type="number" class="form-control" id="inputAGE" required v-model="formData.age" />
-          {{ formData.age }}
-        </div>
+<div class="card-body">
+<h5>4T VIBRATION</h5>
 
-        <div class="form-floating col-md-6">
-          <select class="form-select" id="floatingSelect" aria-label="Floating label select example"
-            v-model="formData.yearofexperience">
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-          </select>
-          <label for="floatingSelect">Year of Experience</label>
-        </div>
 
-        <div class="row mb-3">
-          <label for="inputPhoneNO" class="col-sm-2 col-form-label">Phone No</label>
-          <div class="col-sm-10">
-            <input type="text" class="form-control" id="inputPhoneNo" required v-model="formData.phno" />
-            {{ formData.phno }}
-          </div>
-        </div>
+<p class="why"><b>Why Test:</b> Simulates road vibration to ensure durability of motors and alternators.</p>
 
-        <div class="col-12">
-          <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="gridCheck" />
-            <label class="form-check-label" for="gridCheck">Check me out</label>
-          </div>
-        </div>
+<p class="spec">
+Sine Force : 4000kgf<br>
+Random Force : 4000kgf<br>
+Shock Force : 8000kgf<br>
+Frequency : 2Hz – 3000Hz
+</p>
 
-        <div class="col-12">
-          <button class="btn btn-primary" type="submit">Submit form</button>
-        </div>
-      </form>
+</div>
+</div>
+</div>
 
-      <!-- Optional message after submission -->
-      <p v-if="message" class="mt-3 text-success fw-bold">{{ message }}</p>
-    </div>
-  </div>
+<!-- 1D -->
+<div class="col">
+<div class="card test-card">
+
+<img src="D:\full-stack-developer\proving-reliability-lab-project\images\1d.png" class="test-img">
+
+<div class="card-body">
+
+<h5>1D VIBRATION</h5>
+
+<p class="why"><b>Why Test:</b> Evaluates reliability under vibration combined with temperature conditions.</p>
+
+<p class="spec">
+Max Force : 2000kgf<br>
+Frequency : 10–2000Hz<br>
+Temp : -40°C to 170°C
+</p>
+
+</div>
+</div>
+</div>
+
+</div>
+
+<!-- ================= THERMAL ================= -->
+
+<h3 class="section-title">THERMAL TESTING</h3>
+
+<div class="row row-cols-1 row-cols-md-4 g-4">
+
+<!-- 3 Zone -->
+<div class="col">
+<div class="card test-card">
+
+<img src="D:\full-stack-developer\proving-reliability-lab-project\images\3zone.png" class="test-img">
+
+<div class="card-body">
+
+<h5>3 ZONE THERMAL SHOCK</h5>
+
+<p class="why"><b>Why Test:</b> Checks component durability during sudden temperature changes.</p>
+
+<p class="spec">
+Hot Chamber : +220°C<br>
+Cold Chamber : -80°C<br>
+Transfer Time : 10 sec
+</p>
+
+</div>
+</div>
+</div>
+
+<!-- Climatic -->
+<div class="col">
+<div class="card test-card">
+
+<img src="D:\full-stack-developer\proving-reliability-lab-project\images\climate chamber.png" class="test-img">
+
+<div class="card-body">
+
+<h5>CLIMATIC CHAMBER</h5>
+
+<p class="why"><b>Why Test:</b> Simulates real environmental conditions including humidity.</p>
+
+<p class="spec">
+Temp Range : -70°C to 180°C<br>
+Humidity : 10%–98% RH<br>
+Capacity : 1000L
+</p>
+
+</div>
+</div>
+</div>
+
+<!-- Freezer -->
+<div class="col">
+<div class="card test-card">
+
+<img src="D:\full-stack-developer\proving-reliability-lab-project\images\freezer.png" class="test-img">
+
+<div class="card-body">
+
+<h5>FREEZER</h5>
+
+<p class="why"><b>Why Test:</b> Validates cold start and operation at sub-zero temperatures.</p>
+
+<p class="spec">
+Temp Range : 0 to -60°C<br>
+Used For : Motors & Controllers
+</p>
+
+</div>
+</div>
+</div>
+
+</div>
+
+<!-- ================= WATER ================= -->
+
+<h3 class="section-title">WATER INGRESS TESTING</h3>
+
+<div class="row row-cols-1 row-cols-md-4 g-4">
+
+<div class="col">
+<div class="card test-card">
+<img src="D:\full-stack-developer\proving-reliability-lab-project\images\is ws.png" class="test-img">
+<div class="card-body">
+<h5>IS/DIN WATERSPRAY</h5>
+<p class="why"><b>Why Test:</b> Validates water protection under spray conditions.</p>
+<p class="spec">Pressure : 0.5 – 4 Bar<br>Table Rotation : 1–3 RPM</p>
+</div>
+</div>
+</div>
+
+<div class="col">
+<div class="card test-card">
+<img src="D:\full-stack-developer\proving-reliability-lab-project\images\jis ws.png" class="test-img">
+<div class="card-body">
+<h5>JIS WATERSPRAY</h5>
+<p class="why"><b>Why Test:</b> Japanese standard for water ingress testing.</p>
+<p class="spec">Nozzle : 40<br>Table Rotation : 17 RPM</p>
+</div>
+</div>
+</div>
+
+<div class="col">
+<div class="card test-card">
+<img src="D:\full-stack-developer\proving-reliability-lab-project\images\ipx 9k .png" class="test-img">
+<div class="card-body">
+<h5>IPX9K WATERSPRAY</h5>
+<p class="why"><b>Why Test:</b> High pressure hot water exposure.</p>
+<p class="spec">Pressure : 80–100 Bar<br>Temp : 80°C</p>
+</div>
+</div>
+</div>
+
+<div class="col">
+<div class="card test-card">
+<img src="D:\full-stack-developer\proving-reliability-lab-project\images\IPX TEST.png" class="test-img">
+<div class="card-body">
+<h5>IPX5 / IPX6 TEST</h5>
+<p class="why"><b>Why Test:</b> Protection against powerful water jets.</p>
+<p class="spec">Flow : 12.5 – 100 L/min</p>
+</div>
+</div>
+</div>
+
+<div class="col">
+<div class="card test-card">
+<img src="D:\full-stack-developer\proving-reliability-lab-project\images\HIGH PRESSURE WATER JET TEST.png" class="test-img">
+<div class="card-body">
+<h5>HIGH PRESSURE WATER JET</h5>
+<p class="why"><b>Why Test:</b> Simulates heavy rain and vehicle washing.</p>
+<p class="spec">Max Pressure : 350 Bar</p>
+</div>
+</div>
+</div>
+
+</div>
+
+<!-- ================= DUST ================= -->
+
+<h3 class="section-title">DUST TESTING</h3>
+
+<div class="row row-cols-1 row-cols-md-4 g-4">
+
+<div class="col">
+<div class="card test-card">
+<img src="D:\full-stack-developer\proving-reliability-lab-project\images\is dust.png" class="test-img">
+<div class="card-body">
+<h5>IS DUST CHAMBER</h5>
+<p class="why"><b>Why Test:</b> Simulates dusty road environments.</p>
+<p class="spec">Temp : 40°C<br>Dust : Arizona / Cement</p>
+</div>
+</div>
+</div>
+
+<div class="col">
+<div class="card test-card">
+<img src="D:\full-stack-developer\proving-reliability-lab-project\images\jis dust.png" class="test-img">
+<div class="card-body">
+<h5>JIS DUST CHAMBER</h5>
+<p class="why"><b>Why Test:</b> Japanese standard dust reliability test.</p>
+<p class="spec">Dust : 100–600 mg/m³</p>
+</div>
+</div>
+</div>
+
+</div>
+
+<!-- ================= CORROSION ================= -->
+
+<h3 class="section-title">CORROSION TESTING</h3>
+
+<div class="row row-cols-1 row-cols-md-4 g-4">
+
+<div class="col">
+<div class="card test-card">
+
+<img src="D:\full-stack-developer\proving-reliability-lab-project\images\salt spray.png" class="test-img">
+
+<div class="card-body">
+
+<h5>SALT SPRAY CHAMBER</h5>
+
+<p class="why"><b>Why Test:</b> Evaluates corrosion resistance.</p>
+
+<p class="spec">
+Temp : up to 55°C<br>
+Pressure : 1–25 PSI
+</p>
+
+</div>
+</div>
+</div>
+
+</div>
+
+<!-- ================= MUD ================= -->
+
+<h3 class="section-title">MUD SPLASH TESTING</h3>
+
+<div class="row row-cols-1 row-cols-md-4 g-4">
+
+<div class="col">
+<div class="card test-card">
+
+<img src="D:\full-stack-developer\proving-reliability-lab-project\images\mud test.png" class="test-img">
+
+<div class="card-body">
+
+<h5>MUD SPLASH</h5>
+
+<p class="why"><b>Why Test:</b> Simulates muddy road splash conditions.</p>
+
+<p class="spec">
+Mud Concentration : 5–20%<br>
+Drive Speed : 10000 RPM
+</p>
+
+</div>
+</div>
+</div>
+
+</div>
+
+</div>
+
 </template>
 
-<script>
-import axios from "axios";
 
-export default {
-  data() {
-    return {
-      formData: {
-        firstName: null,
-        lastName: null,
-        email: null,
-        Dob: null,
-        bloodgroup: null,
-        age: null,
-        yearofexperience: null,
-        phno: null,
-      },
-      message: null,
-    };
-  },
-  methods: {
-    async handleSubmit() {
-      try {
-        const url = "http://localhost:3001/staffs";
-        const response = await axios.post(url, this.formData);
-        console.log(response);
-        this.message = "Record created successfully!";
-        this.resetForm();
-      } catch (error) {
-        console.error(error);
-      }
-    },
-    resetForm() {
-      this.formData = {
-        firstName: null,
-        lastName: null,
-        email: null,
-        Dob: null,
-        bloodgroup: null,
-        age: null,
-        yearofexperience: null,
-        phno: null,
-      };
-    },
-  },
-};
-</script>
+<style>
 
-<style scoped>
-.bg-info-subtle {
-  background-color: #d8f7ff !important;
-  /* sky blue */
-  min-height: 100vh;
+.title-bar{
+background:#0f172a;
+color:white;
+text-align:center;
+padding:25px;
 }
 
-/* Add a little spacing to make it neat */
-.container {
-  max-width: 900px;
+.section-title{
+margin-top:50px;
+margin-bottom:20px;
+color:#1e3a8a;
+font-weight:bold;
+border-left:5px solid #2563eb;
+padding-left:12px;
 }
+
+.test-card{
+border:none;
+border-radius:10px;
+transition:0.3s;
+box-shadow:0 5px 15px rgba(0,0,0,0.15);
+}
+
+.test-card:hover{
+transform:translateY(-8px);
+box-shadow:0 12px 25px rgba(0,0,0,0.25);
+}
+
+.test-img{
+width:100%;
+height:220px;
+object-fit:cover;
+border-top-left-radius:10px;
+border-top-right-radius:10px;
+}
+
+.why{
+font-size:14px;
+color:#374151;
+}
+
+.spec{
+font-size:13px;
+color:#555;
+}
+
 </style>
