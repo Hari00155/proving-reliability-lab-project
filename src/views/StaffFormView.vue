@@ -88,6 +88,76 @@ Transfer Time : 10 sec
 </div>
 </div>
 
+<!-- 2 Zone -->
+<div class="col">
+<div class="card test-card">
+
+<img src="D:\full-stack-developer\proving-reliability-lab-project\images\2 zone.jpg" class="test-img">
+
+<div class="card-body">
+
+<h5>2 ZONE THERMAL SHOCK</h5>
+
+<p class="why"><b>Why Test:</b> Evaluates component reliability under rapid temperature transition between hot and cold zones, identifying material cracks, seal failures, and thermal stress issues.</p>
+
+<p class="spec">
+Hot Chamber : +200°C to +220°C<br>
+Cold Chamber : -70°C to -80°C<br>
+Transfer Time : ≤ 10 sec<br>
+Dwell Time : 10–30 min<br>
+Cycles : 100–1000 cycles
+</p>
+
+</div>
+</div>
+</div>
+
+<!-- ACS climate chamber -->
+<div class="col">
+<div class="card test-card">
+
+<img src="D:\full-stack-developer\proving-reliability-lab-project\images\acs.jpg" class="test-img">
+
+<div class="card-body">
+
+<h5>ACS CLIMATE CHAMBER</h5>
+
+<p class="why"><b>Why Test:</b> Simulates combined environmental conditions like temperature and humidity to validate long-term durability and performance of automotive components.</p>
+
+<p class="spec">
+Temp Range : -70°C to +180°C<br>
+Humidity : 10% – 98% RH<br>
+Rate of Change : 3–5°C/min<br>
+Volume : 500L – 1500L
+</p>
+
+</div>
+</div>
+</div>
+
+<!-- SOUTHERN CLIMATE CHAMBER -->
+<div class="col">
+<div class="card test-card">
+
+<img src="D:\full-stack-developer\proving-reliability-lab-project\images\climate chamber.jpg" class="test-img">
+
+<div class="card-body">
+
+<h5>SOUTHERN CLIMATE CHAMBER</h5>
+
+<p class="why"><b>Why Test:</b> Performs environmental simulation including cyclic temperature and humidity testing to ensure product reliability in tropical conditions.</p>
+
+<p class="spec">
+Temp Range : -40°C to +150°C<br>
+Humidity : 20% – 95% RH<br>
+Control Accuracy : ±1°C<br>
+Applications : ECU, sensors, alternators
+</p>
+
+</div>
+</div>
+</div>
+
 <!-- Climatic -->
 <div class="col">
 <div class="card test-card">
@@ -104,6 +174,51 @@ Transfer Time : 10 sec
 Temp Range : -70°C to 180°C<br>
 Humidity : 10%–98% RH<br>
 Capacity : 1000L
+</p>
+
+</div>
+</div>
+</div>
+
+<!-- Climatic -->
+<div class="col">
+<div class="card test-card">
+
+<img src="D:\full-stack-developer\proving-reliability-lab-project\images\ice water.jpg" class="test-img">
+
+<div class="card-body">
+
+<h5>ICE WATER SHOCK</h5>
+
+<p class="why"><b>Why Test:</b> Simulates sudden exposure of hot components to ice-cold water, checking for thermal cracking, sealing failure, and material deformation.</p>
+
+<p class="spec">
+Hot Condition : 80°C – 120°C<br>
+Water Temp : 0°C – 5°C<br>
+Immersion Time : 5–10 min<br>
+Cycles : 20–100 cycles
+</p>
+
+</div>
+</div>
+</div>
+
+<!-- Oven -->
+<div class="col">
+<div class="card test-card">
+
+<img src="D:\full-stack-developer\proving-reliability-lab-project\images\oven.jpg" class="test-img">
+
+<div class="card-body">
+
+<h5>OVEN</h5>
+<p class="why"><b>Why Test:</b> Validates high-temperature endurance, aging, and continuous operation performance of components.</p>
+
+<p class="spec">
+Temp Range : Ambient to 250°C<br>
+Uniformity : ±2°C<br>
+Air Circulation : Forced convection<br>
+Application : Motors, stators, insulation
 </p>
 
 </div>
@@ -168,6 +283,39 @@ Used For : Motors & Controllers
 <h5>IPX9K WATERSPRAY</h5>
 <p class="why"><b>Why Test:</b> High pressure hot water exposure.</p>
 <p class="spec">Pressure : 80–100 Bar<br>Temp : 80°C</p>
+</div>
+</div>
+</div>
+
+<div class="col">
+<div class="card test-card">
+<img src="D:\full-stack-developer\proving-reliability-lab-project\images\adc es.jpg" class="test-img">
+<div class="card-body">
+<h5>ADC WATER SPRAY</h5>
+<p class="why"><b>Why Test:</b> Simulates real vehicle washing and heavy rain conditions to verify sealing and water ingress protection.</p>
+<p class="spec">
+Pressure : 1 – 10 Bar<br>
+Flow Rate : 10 – 25 L/min<br>
+Nozzle Type : Multi-angle spray<br>
+Test Duration : 5–30 min
+</p>
+</div>
+</div>
+</div>
+
+
+<div class="col">
+<div class="card test-card">
+<img src="D:\full-stack-developer\proving-reliability-lab-project\images\immresion.jpg" class="test-img">
+<div class="card-body">
+<h5>WATER IMMERSION TEST RIG</h5>
+<p class="why"><b>Why Test:</b> Checks sealing integrity by immersing components in water to detect leakage and failure under submerged conditions.</p>
+<p class="spec">
+Depth : 0.5 – 1 meter<br>
+Duration : 30 min – 24 hrs<br>
+Water Temp : Ambient / Heated<br>
+Standard : IPX7 / IPX8
+</p>
 </div>
 </div>
 </div>
@@ -251,9 +399,32 @@ Pressure : 1–25 PSI
 </div>
 </div>
 </div>
-
 </div>
 
+
+<div class="col cols-row--1 row-cols-md-4 g-4">
+
+<div class="col">
+<div class="card test-card">
+
+<img src="D:\full-stack-developer\proving-reliability-lab-project\images\adc salt spray.jpg" class="test-img">
+
+<div class="card-body">
+
+<h5>ADC SLAT SPRAY</h5>
+
+<p class="why"><b>Why Test:</b> Evaluates corrosion resistance.</p>
+
+<p class="spec">
+Temp : up to 55°C<br>
+Pressure : 1–25 PSI
+</p>
+
+</div>
+</div>
+</div>
+
+</div>
 <!-- ================= MUD ================= -->
 
 <h3 class="section-title">MUD SPLASH TESTING</h3>
