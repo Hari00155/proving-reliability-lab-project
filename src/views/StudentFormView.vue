@@ -1,167 +1,244 @@
 <template>
-   <!-- Full-width sky blue background -->
-   <div class="bg-info-subtle text-info-emphasis py-5">
-    <!-- Inner container to center the form nicely -->
-    <div class="container bg-white p-5 rounded-4 shadow">
-    <h1>Student Form</h1>
-    
 
-    <RouterLink to="/students/update">To update a student</RouterLink>
+<!-- HEADER -->
+<header class="title-bar">
+  <h2>ALTERNATOR TESTING</h2>
+  <p>
+    Comprehensive validation of automotive alternators to ensure reliable electrical performance,
+    durability, and efficiency under thermal, speed, and load conditions.
+  </p>
+</header>
 
-    <form class="row g-3 needs-validation" @submit.prevent="handleSubmit"  style="max-width: px;">
-      <div class="col-md-6">
-        <label for="inputFirstName" class="form-label">First Name</label>
-        <input type="text" class="form-control" id="inputFirstName" required v-model="formData.firstName" />
-        {{ formData.firstName }}
-      </div>
-      <div class="col-md-6">
-        <label for="inputLastName" class="form-label">Last Name</label>
-        <input type="LastName" class="form-control" id="inputLastName" required v-model="formData.lastName" />
-        {{ formData.lastName }}
-      </div>
-      <div class="row mb-3">
-        <label for="colFormLabel" class="col-sm-2 col-form-label">Email</label>
-        <div class="col-sm-25">
-          <input type="email" class="form-control" id="colFormLabel" placeholder="XYZ@Email.com" required
-            v-model="formData.email" />
-          {{ formData.email }}
-        </div>
-      </div>
+<div class="container my-5">
 
-      <div>
-        <label for="dob">Dob:</label>
-        <input type="date" required v-model="formData.dob" />
-        {{ formData.dob }}
-      </div>
+<h3 class="section-title">THERMAL & PERFORMANCE TESTING</h3>
 
-      <div class="col-md-4">
-        <label for="Bloodgroup" class="form-label">Blood Group</label>
-        <select id="inputBloodgroup" class="form-select" v-model="formData.bloodGroup">
-          <option selected>Choose...</option>
-          <option>A+</option>
-          <option>A-</option>
-          <option>AB+</option>
-          <option>AB-</option>
-          <option>B+</option>
-          <option>B-</option>
-          <option>O+</option>
-          <option>O-</option>
-        </select>
-        {{ formData.bloodGroup }}
-      </div>
-      <div class="col-md-2">
-        <label for="inputAGE" class="form-label">Age</label>
-        <input type="text" class="form-control" id="inputAGE" required v-model="formData.age" />
-        {{ formData.age }}
-      </div>
-      <div class="form-floating">
-        <select class="form-select" id="floatingSelect" aria-label="Floating label select example"
-          v-model="formData.currentYear">
-          <option value="1st Year">1st Year</option>
-          <option value="2nd Year">2nd Year</option>
-          <option value="3th Year">3th Year</option>
-          <option value="4th Year">4th Year</option>
-        </select>
-        <label for="floatingSelect">Current Year</label>
-        {{ formData.currentYear }}
-      </div>
-      <div class="row mb-3">
-        <label for="inputPhoneNO" class="col-sm-2 col-form-label">Phone No</label>
-        <div class="col-sm-25">
-          <input type="text" class="form-control" id="inputPhoneNo" required v-model="formData.mobileNo" />
-          {{ formData.mobileNo }}
-        </div>
-      </div>
-      <div class="col-12">
-        <div class="form-check">
-          <input class="form-check-input" type="checkbox" id="gridCheck" />
-          <label class="form-check-label" for="gridCheck"> Check me out </label>
-        </div>
-      </div>
-      <div class="col-12">
-        <button class="btn btn-primary" type="submit">Submit form</button>
-      </div>
-      </form>
-    
+<div class="row row-cols-1 row-cols-md-3 g-4">
 
-    <!-- Success Alert-->
-    <div v-if="message" class="alert alert-success" role="alert">
-      {{ message }}
-    </div>
-      </div>
-    </div>
- 
+<!-- 1 -->
+<div class="col">
+<div class="card test-card">
+<img src="D:\full-stack-developer\proving-reliability-lab-project\images\ana.jpg" class="test-img">
+<div class="card-body">
+<h5>NORMAL SPEED - NORMAL AMBIENT</h5>
+
+<p class="why">
+<b>Why Test:</b> Verifies alternator performance under standard operating conditions ensuring stable output and thermal balance.
+</p>
+
+<p class="spec">
+<b>Machine Specifications:</b><br>
+Speed : 1500 – 3000 RPM<br>
+Temp : 25°C ±5°C<br>
+Voltage : 12V / 24V<br>
+Load : No / Partial<br>
+Duration : 2–8 hrs
+</p>
+
+</div>
+</div>
+</div>
+
+<!-- 2 -->
+<div class="col">
+<div class="card test-card">
+<img src="D:\full-stack-developer\proving-reliability-lab-project\images\anh.jpg" class="test-img">
+<div class="card-body">
+<h5>HIGH SPEED - HIGH AMBIENT</h5>
+
+<p class="why">
+<b>Why Test:</b> Evaluates durability under high temperature and speed, identifying overheating and insulation failure.
+</p>
+
+<p class="spec">
+<b>Machine Specifications:</b><br>
+Speed : Up to 6000 RPM<br>
+Temp : 120°C – 180°C<br>
+Load : Full Load<br>
+Monitoring : Voltage / Current<br>
+Duration : 1–4 hrs
+</p>
+
+</div>
+</div>
+</div>
+
+<!-- 3 -->
+<div class="col">
+<div class="card test-card">
+<img src="D:\full-stack-developer\proving-reliability-lab-project\images\anvs.jpg" class="test-img">
+<div class="card-body">
+<h5>VARIABLE SPEED - HIGH AMBIENT</h5>
+
+<p class="why">
+<b>Why Test:</b> Simulates real driving conditions with varying speeds and high temperature.
+</p>
+
+<p class="spec">
+<b>Machine Specifications:</b><br>
+Speed : 1000 – 6000 RPM<br>
+Temp : Up to 180°C<br>
+Control : Programmable<br>
+Load : Dynamic<br>
+Cycle : Continuous
+</p>
+
+</div>
+</div>
+</div>
+
+<!-- 4 -->
+<div class="col">
+<div class="card test-card">
+<img src="D:\full-stack-developer\proving-reliability-lab-project\images\anhvs.jpg" class="test-img">
+<div class="card-body">
+<h5>VARIABLE SPEED - CYCLIC AMBIENT</h5>
+
+<p class="why">
+<b>Why Test:</b> Tests alternator reliability under cyclic temperature and humidity conditions.
+</p>
+
+<p class="spec">
+<b>Machine Specifications:</b><br>
+Temp : -40°C to +150°C<br>
+Humidity : 20% – 95% RH<br>
+Speed : Variable<br>
+Accuracy : ±1°C<br>
+Application : Automotive
+</p>
+
+</div>
+</div>
+</div>
+
+<!-- 5 -->
+<div class="col">
+<div class="card test-card">
+<img src="D:\full-stack-developer\proving-reliability-lab-project\images\ashsl.jpg" class="test-img">
+<div class="card-body">
+<h5>ACCELERATION & DECELERATION</h5>
+
+<p class="why">
+<b>Why Test:</b> Evaluates response to rapid speed changes during real driving conditions.
+</p>
+
+<p class="spec">
+<b>Machine Specifications:</b><br>
+Speed : 0 – 6000 RPM<br>
+Ramp : High rate<br>
+Temp : -70°C to 180°C<br>
+Cycles : 100–1000<br>
+Control : Programmable
+</p>
+
+</div>
+</div>
+</div>
+
+<!-- 6 -->
+<div class="col">
+<div class="card test-card">
+<img src="D:\full-stack-developer\proving-reliability-lab-project\images\anhshl.jpg" class="test-img">
+<div class="card-body">
+<h5>HIGH SPEED - HIGH LOAD</h5>
+
+<p class="why">
+<b>Why Test:</b> Ensures alternator withstands maximum electrical load without failure.
+</p>
+
+<p class="spec">
+<b>Machine Specifications:</b><br>
+Speed : Up to 6000 RPM<br>
+Load : 100% Load<br>
+Temp : 80°C – 150°C<br>
+Monitoring : Voltage / Efficiency<br>
+Duration : Endurance
+</p>
+
+</div>
+</div>
+</div>
+
+</div>
+</div>
+
 </template>
 
-<script>
-import Container from '@/components/Container.vue'
 
-import axios from 'axios'
+<style>
 
-export default {
-  data() {
-    return {
-      formData: {
-        firstName: null,
-        lastName: null,
-        email: null,
-        dob: null,
-        age: null,
-        mobileNo: null,
-        currentYear: null,
-        createdAt: Date.now(),
-        bloodGroup: null,
-        departmentId: 1,
-      },
-      message: null,
-    }
-  },
-  methods: {
-    async handleSubmit() {
-      let url = 'http://localhost:3001/students'
-      axios.post(url, this.formData)
-        .then( response => {
-          console.log(response);
-          this.message = "Record created."
-          this.resetForm()
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
-
-    },
-    resetForm() {
-      this.formData = {
-        firstName: null,
-        lastName: null,
-        email: null,
-        dob: null,
-        age: null,
-        mobileNo: null,
-        currentYear: null,
-        createdAt: null,
-        bloodGroup: null,
-        departmentId: 1,
-      }
-    },
-  },
-
-  components: {
-    Container,
-  },
-}
-</script>
-
-<style scoped>
-.bg-info-subtle {
-  background-color: #b6cef7 !important;
-  /* light voilet */
-  min-height: 100vh;
+/* HEADER */
+.title-bar{
+background: linear-gradient(135deg, #0f172a, #2563eb);
+color:white;
+text-align:center;
+padding:30px;
+border-bottom:4px solid #facc15;
 }
 
-/* Add a little spacing to make it neat */
-.container {
-  max-width: 900px;
+.title-bar h2{
+margin:0;
+font-size:28px;
+letter-spacing:1px;
 }
+
+.title-bar p{
+margin-top:10px;
+font-size:15px;
+opacity:0.9;
+}
+
+/* SECTION */
+.section-title{
+margin-top:50px;
+margin-bottom:20px;
+color:#1e3a8a;
+font-weight:bold;
+border-left:5px solid #f59e0b;
+padding-left:12px;
+}
+
+/* CARD */
+.test-card{
+border:none;
+border-radius:12px;
+transition:0.3s;
+box-shadow:0 6px 18px rgba(0,0,0,0.15);
+}
+
+.test-card:hover{
+transform:translateY(-10px);
+box-shadow:0 14px 30px rgba(0,0,0,0.25);
+}
+
+.test-img{
+width:100%;
+height:220px;
+object-fit:cover;
+border-top-left-radius:12px;
+border-top-right-radius:12px;
+}
+
+.card-body{
+padding:15px;
+}
+
+.card-body h5{
+font-size:16px;
+font-weight:600;
+margin-bottom:10px;
+}
+
+.why{
+font-size:14px;
+color:#374151;
+margin-bottom:10px;
+}
+
+.spec{
+font-size:13px;
+color:#4b5563;
+line-height:1.6;
+}
+
 </style>
-

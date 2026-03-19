@@ -1,7 +1,7 @@
 <template>
   <nav class="navbar navbar-dark bg-dark navbar-expand-lg">
     <div class="container-fluid">
-      <router-link class="navbar-brand" to="/">MyApp</router-link>
+      <router-link class="navbar-brand" to="/"></router-link>
       <button
         class="navbar-toggler"
         type="button"
@@ -22,10 +22,10 @@
             <router-link class="nav-link" to="/about">About</router-link>
           </li>
           <li class="nav-item">
-            <router-link class="nav-link" to="/staff-form">Staff Form</router-link>
+            <router-link class="nav-link" to="/staff-form">Environment Testing</router-link>
           </li>
           <li class="nav-item">
-            <router-link class="nav-link" to="/student-form">Student Form</router-link>
+            <router-link class="nav-link" to="/student-form">Alternator Testing</router-link>
           </li>
           <li class="nav-item">
             <router-link class="nav-link" to="/Department-form">Department Form</router-link>
