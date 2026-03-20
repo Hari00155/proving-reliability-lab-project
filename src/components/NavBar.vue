@@ -22,16 +22,16 @@
             <router-link class="nav-link" to="/about">About</router-link>
           </li>
           <li class="nav-item">
-            <router-link class="nav-link" to="/staff-form">Environment Testing</router-link>
+            <router-link class="nav-link" to="/environment">Environment Testing</router-link>
           </li>
           <li class="nav-item">
-            <router-link class="nav-link" to="/student-form">Alternator Testing</router-link>
+            <router-link class="nav-link" to="/alternator">Alternator Testing</router-link>
           </li>
           <li class="nav-item">
-            <router-link class="nav-link" to="/Department-form">Department Form</router-link>
+            <router-link class="nav-link" to="/wiper">Wiper Testing</router-link>
           </li>
           <li class="nav-item">
-            <router-link class="nav-link" to="/List-form">List View</router-link>
+            <router-link class="nav-link" to="/Starter">Starter Testing</router-link>
           </li>
           <li class="nav-item">
             <router-link class="nav-link" to="/blog">Blog</router-link>
