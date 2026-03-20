@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '@/views/HomeView.vue'
 import AboutView from '@/views/AboutView.vue'
-import StaffFormView from '@/views/StaffFormView.vue'
+import EnvironmentView from '@/views/EnvironmentView.vue'
 import StudentFormView from '@/views/StudentFormView.vue'
 import DepartFormView from '@/views/DepartmentFormView.vue'
 import ListView from '@/views/ListView.vue'
@@ -16,7 +16,7 @@ import UserManualView from '@/views/UserManualView.vue'
 const routes = [
   { path: '/', name: 'home', component: HomeView },
   { path: '/about', name: 'about', component: AboutView },
-  { path: '/staff-form', name: 'staff-form', component: StaffFormView },
+  { path: '/Environment', name: 'Environment-view', component: EnvironmentView },
   { path: '/student-form', name: 'student-form', component: StudentFormView },
   { path: '/Department-form', name: 'Department-form', component: DepartFormView },
   { path: '/List-form', name: 'List-form', component: ListView },
