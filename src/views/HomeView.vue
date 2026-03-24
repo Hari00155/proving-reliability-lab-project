@@ -1,112 +1,98 @@
 <template>
+  <div class="d-flex justify-content-center align-items-center vh-100 bg-light">
 
-  <!-- Title -->
-  <header class="text-center py-4 text-white custom-header">
-    <h2><b>PROVING & RELIABILITY LABORATORY</b></h2>
-  </header>
+    <!-- LOGIN PAGE -->
+    <div v-if="page === 'login'" class="card shadow" style="width: 400px;">
+      <img src="D:\full-stack-developer\proving-reliability-lab-report-software\images\bg 2.png" class="card-img-top" alt="Login Image" />
 
-  <!-- Main Background Image -->
-  <div class="card border-0">
-    <img src="/images/mainbg.png" class="card-img-mid" alt="Lab Background" />
-  </div>
-
-  <!-- Department Cards -->
-  <div class="container my-5">
-    <div class="row row-cols-1 row-cols-md-4 g-4">
-
-      <!-- Environment Testing -->
-      <div class="col">
-        <div class="card h-100 shadow">
-          <img src="/images/environmenttestingmain.png" class="card-img-top" />
-          <div class="card-body">
-            <h5 class="card-title">ENVIRONMENT TESTING</h5>
-            <p class="card-text">
-              Validates component performance under extreme temperature, humidity, dust, corrosion,
-              and vibration conditions.<br />
-              Ensures reliability in real-world environments.
-            </p>
+      <div class="card-body">
+        <form @submit.prevent="login">
+          
+          <div class="mb-3">
+            <label class="form-label">User Id</label>
+            <input 
+              type="email" 
+              class="form-control" 
+              v-model="email"
+              placeholder="Enter email" 
+              required
+            />
           </div>
-        </div>
-      </div>
 
-      <!-- Alternator Testing -->
-      <div class="col">
-        <div class="card h-100 shadow">
-          <img src="/images/alternatortestingmain.png" class="card-img-top" />
-          <div class="card-body">
-            <h5 class="card-title">ALTERNATOR TESTING</h5>
-            <p class="card-text">
-              Evaluates electrical output, efficiency, and durability under varying load and speed conditions.<br />
-              Ensures consistent power generation and long service life.
-            </p>
+          <div class="mb-3">
+            <label class="form-label">Password</label>
+            <input 
+              type="password" 
+              class="form-control" 
+              v-model="password"
+              placeholder="Enter password"
+              required
+            />
           </div>
-        </div>
-      </div>
 
-      <!-- Wiper Testing -->
-      <div class="col">
-        <div class="card h-100 shadow">
-          <img src="/images/wipertestingmain.png" class="card-img-top" />
-          <div class="card-body">
-            <h5 class="card-title">WIPER TESTING</h5>
-            <p class="card-text">
-              Tests wiping performance, endurance, and operation under rain, dust, and temperature variations.<br />
-              Ensures clear visibility in all conditions.
-            </p>
-          </div>
-        </div>
-      </div>
+          <button type="submit" class="btn btn-primary w-100">
+            Sign in
+          </button>
 
-      <!-- Starter Testing -->
-      <div class="col">
-        <div class="card h-100 shadow">
-          <img src="/images/Startertestingmain.png" class="card-img-top" />
-          <div class="card-body">
-            <h5 class="card-title">STARTER TESTING</h5>
-            <p class="card-text">
-              Assesses cranking torque, electrical performance, and life cycle under repeated start conditions.<br />
-              Ensures dependable engine start.
-            </p>
-          </div>
-        </div>
-      </div>
+          <p v-if="error" class="text-danger text-center mt-2">
+            {{ error }}
+          </p>
 
+        </form>
+      </div>
     </div>
-  </div>
 
-  <!-- Customers -->
-  <div class="text-center my-5">
-    <h2><b>CUSTOMERS</b></h2>
-    <img src="/images/customerbg.png" class="img-fluid mt-3" />
-  </div>
+    <!-- ROLE SELECTION -->
+    <div v-else class="card shadow p-4 text-center" style="width: 400px;">
+      <h4 class="mb-4">Select Your Privilege</h4>
 
-  <!-- Footer -->
-  <footer class="bg-dark text-light py-3">
-    <div class="container text-center">
-      <p class="mb-1">Lucas TVS Proving & Reliability Lab</p>
-      <small>Ensuring Quality & Reliability</small>
+      <button 
+        class="btn btn-primary w-100 mb-3"
+        @click="selectRole('user')"
+      >
+        Proving Lab User
+      </button>
+
+      <button 
+        class="btn btn-dark w-100"
+        @click="selectRole('admin')"
+      >
+        Proving Lab Administrator
+      </button>
     </div>
-  </footer>
 
+  </div>
 </template>
 
+<script>
+export default {
+  data() {
+    return {
+      email: "",
+      password: "",
+      error: "",
+      page: "login" // control view
+    };
+  },
+  methods: {
+    login() {
+      const validEmail = "admin@gmail.com";
+      const validPassword = "123456";
 
-<style>
+      if (this.email === validEmail && this.password === validPassword) {
+        this.page = "role"; // switch to role selection
+      } else {
+        this.error = "Invalid Email or Password ❌";
+      }
+    },
 
-/* HEADER COLOR CHANGED */
-.custom-header{
-  background: linear-gradient(135deg, #1e3a8a, #0ea5e9);
-}
-
-/* Optional small improvements */
-.card-img-mid{
-  height: 350px;
-  object-fit: cover;
-}
-
-.card img{
-  height: 200px;
-  object-fit: cover;
-}
-
-</style>
+    selectRole(role) {
+      if (role === "user") {
+        this.$router.push("/user-dashboard");
+      } else {
+        this.$router.push("/admin-dashboard");
+      }
+    }
+  }
+};
+</script>
