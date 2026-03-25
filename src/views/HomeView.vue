@@ -39,6 +39,7 @@
           </p>
 
         </form>
+        <button @click="goAdmin">Admin</button>
       </div>
     </div>
 
@@ -71,16 +72,17 @@ export default {
       email: "",
       password: "",
       error: "",
-      page: "login" // control view
+      page: "login"
     };
   },
+
   methods: {
     login() {
       const validEmail = "admin@gmail.com";
-      const validPassword = "123456";
+      const validPassword = "123";
 
       if (this.email === validEmail && this.password === validPassword) {
-        this.page = "role"; // switch to role selection
+        this.page = "role";
       } else {
         this.error = "Invalid Email or Password ❌";
       }
@@ -88,10 +90,14 @@ export default {
 
     selectRole(role) {
       if (role === "user") {
-        this.$router.push("/user-dashboard");
+        this.$router.push("/user-dashboard"); // make sure route exists
       } else {
-        this.$router.push("/admin-dashboard");
+        this.$router.push("/admin"); // 👈 FIXED (match router)
       }
+    },
+
+    goAdmin() {
+      this.$router.push("/admin"); // 👈 direct button
     }
   }
 };
