@@ -1,0 +1,3 @@
+<template>
+    Rejected Requests
+</template>

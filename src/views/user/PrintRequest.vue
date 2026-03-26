@@ -1,0 +1,3 @@
+<template>
+    Print Requests
+</template>

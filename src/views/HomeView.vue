@@ -1,8 +1,7 @@
 <template>
   <div class="d-flex justify-content-center align-items-center vh-100 bg-light">
 
-    <!-- LOGIN PAGE -->
-    <div v-if="page === 'login'" class="card shadow" style="width: 400px;">
+    <div class="card shadow" style="width: 400px;">
       <img src="D:\full-stack-developer\proving-reliability-lab-report-software\images\bg 2.png" class="card-img-top" alt="Login Image" />
 
       <div class="card-body">
@@ -11,10 +10,10 @@
           <div class="mb-3">
             <label class="form-label">User Id</label>
             <input 
-              type="email" 
+              type="text" 
               class="form-control" 
               v-model="email"
-              placeholder="Enter email" 
+              placeholder="Enter user ID" 
               required
             />
           </div>
@@ -39,27 +38,7 @@
           </p>
 
         </form>
-        <button @click="goAdmin">Admin</button>
       </div>
-    </div>
-
-    <!-- ROLE SELECTION -->
-    <div v-else class="card shadow p-4 text-center" style="width: 400px;">
-      <h4 class="mb-4">Select Your Privilege</h4>
-
-      <button 
-        class="btn btn-primary w-100 mb-3"
-        @click="selectRole('user')"
-      >
-        Proving Lab User
-      </button>
-
-      <button 
-        class="btn btn-dark w-100"
-        @click="selectRole('admin')"
-      >
-        Proving Lab Administrator
-      </button>
     </div>
 
   </div>
@@ -71,33 +50,27 @@ export default {
     return {
       email: "",
       password: "",
-      error: "",
-      page: "login"
+      error: ""
     };
   },
 
   methods: {
     login() {
-      const validEmail = "admin@gmail.com";
-      const validPassword = "123";
+      const adminEmail = "admin";
+      const adminPassword = "123";
 
-      if (this.email === validEmail && this.password === validPassword) {
-        this.page = "role";
-      } else {
-        this.error = "Invalid Email or Password ❌";
+      const userEmail = "user";
+      const userPassword = "12";
+
+      if (this.email === adminEmail && this.password === adminPassword) {
+        this.$router.push({ name: "admin" });
+      } 
+      else if (this.email === userEmail && this.password === userPassword) {
+        this.$router.push({ name: "user" });
+      } 
+      else {
+        this.error = "Invalid User ID or Password ❌";
       }
-    },
-
-    selectRole(role) {
-      if (role === "user") {
-        this.$router.push("/user-dashboard"); // make sure route exists
-      } else {
-        this.$router.push("/admin"); // 👈 FIXED (match router)
-      }
-    },
-
-    goAdmin() {
-      this.$router.push("/admin"); // 👈 direct button
     }
   }
 };

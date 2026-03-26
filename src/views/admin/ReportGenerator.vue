@@ -1,1 +1,3 @@
-<template>ReportGenerator</template>
+<template> 
+
+</template>
