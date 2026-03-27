@@ -1,10 +1,8 @@
 <template>
   <div class="container">
-
     <h4 class="mb-4">Place Request Form</h4>
 
     <form @submit.prevent="submitRequest">
-
       <!-- DATE -->
       <div class="mb-3">
         <label>Today Date</label>
@@ -130,19 +128,20 @@
           Cancel
         </button>
       </div>
-
     </form>
   </div>
 </template>
 
 <script>
+import axios from "axios";
+
 export default {
   name: "PlaceRequest",
 
   data() {
     return {
       form: {
-        date: new Date().toISOString().substr(0, 10), // ✅ auto today date
+        date: new Date().toISOString().substr(0, 10),
         partNo: "",
         description: "",
         platformCode: "",
@@ -166,13 +165,38 @@ export default {
       this.form.file = e.target.files[0];
     },
 
-    submitRequest() {
-      let data = JSON.parse(localStorage.getItem("requests")) || [];
-      data.push(this.form);
-      localStorage.setItem("requests", JSON.stringify(data));
+    async submitRequest() {
+      try {
+        const formData = new FormData();
 
-      alert("Request Submitted ✅");
-      this.resetForm();
+        formData.append("date", this.form.date);
+        formData.append("partNo", this.form.partNo);
+        formData.append("description", this.form.description);
+        formData.append("platformCode", this.form.platformCode);
+        formData.append("productCode", this.form.productCode);
+        formData.append("customer", this.form.customer);
+        formData.append("samples", this.form.samples);
+        formData.append("testType", this.form.testType);
+        formData.append("category", this.form.category);
+        formData.append("testDetails", this.form.testDetails);
+        formData.append("special", this.form.special);
+        formData.append("criteria", this.form.criteria);
+        formData.append("spec", this.form.spec);
+        formData.append("testName", this.form.testName);
+
+        if (this.form.file) {
+          formData.append("file", this.form.file);
+        }
+
+        await axios.post("http://localhost:5000/api/requests", formData);
+
+        alert("Request saved ✅");
+
+        this.resetForm();
+      } catch (error) {
+        console.error(error);
+        alert("Error saving request ❌");
+      }
     },
 
     resetForm() {
@@ -197,5 +221,3 @@ export default {
   }
 };
 </script>
-
-

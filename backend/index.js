@@ -1,33 +1,32 @@
-const express = require('express')
-const cors = require('cors')
-const app = express()
-const PORT = process.env.PORT || 3001
+const express = require("express");
+const cors = require("cors");
+const multer = require("multer");
 
-const studentRoutes = require('./routes/studentRoutes');
-const departmentRoutes = require('./routes/departmentRoutes');
-const staffRoutes = require('./routes/staffRoutes');
-const db = require('./config/database');
+const db = require("./config/database");
+const requestRoutes = require("./routes/requestRoutes");
 
-// Connect to the database
-db.authenticate()
- .then(() => console.log('Database connected'))
- .catch((err) => console.error('Error connecting to database:', err));
+const app = express();
+const upload = multer();
 
-// Allow all origins
+// ✅ Middleware
 app.use(cors());
-// Middleware to parse JSON requests
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(upload.none()); // ✅ IMPORTANT for FormData
 
-app.use(studentRoutes);
-app.use(departmentRoutes);
-app.use(staffRoutes);
-// app.use(departmentRoutes)
+// ✅ Routes
+app.use("/api/requests", requestRoutes);
 
-// Rest API creation
-app.get('/', (req, res) => {
-  res.send('Welcome to Express JS!!!')
-})
+// ✅ DB
+db.authenticate()
+  .then(() => console.log("Database connected"))
+  .catch(err => console.log(err));
 
-app.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`)
-})
+db.sync()
+  .then(() => console.log("Table created"))
+  .catch(err => console.log(err));
+
+// ✅ Server
+app.listen(5000, () => {
+  console.log("Server running on port 5000");
+});
