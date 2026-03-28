@@ -15,7 +15,9 @@ const Request = db.define("Request", {
   special: { type: DataTypes.TEXT, allowNull: true },
   criteria: { type: DataTypes.TEXT, allowNull: true },
   spec: { type: DataTypes.STRING, allowNull: true },
-  testName: { type: DataTypes.STRING, allowNull: true }
+  testName: { type: DataTypes.STRING, allowNull: true },
+  filePath: { type: DataTypes.STRING, allowNull: true }
+
 }, {
   tableName: "requests",
   timestamps: true

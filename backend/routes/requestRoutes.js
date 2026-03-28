@@ -2,7 +2,9 @@ const express = require("express");
 const router = express.Router();
 
 const { createRequest } = require("../controllers/requestController");
+const upload = require("../middlewares/upload"); // 👈 add this
 
-router.post("/", createRequest);
+// 👇 CHANGE THIS LINE
+router.post("/", upload.single("file"), createRequest);
 
 module.exports = router;

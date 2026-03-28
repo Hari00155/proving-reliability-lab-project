@@ -3,8 +3,12 @@ const Request = require("../models/request");
 exports.createRequest = async (req, res) => {
   try {
     console.log("BODY:", req.body);
+    console.log("FILE:", req.file); // 👈 check here
 
-    const newRequest = await Request.create(req.body);
+    const newRequest = await Request.create({
+      ...req.body,
+      filePath: req.file ? req.file.filename : null
+    });
 
     res.status(201).json({
       message: "Request created successfully",

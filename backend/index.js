@@ -1,18 +1,18 @@
 const express = require("express");
 const cors = require("cors");
-const multer = require("multer");
 
 const db = require("./config/database");
 const requestRoutes = require("./routes/requestRoutes");
 
 const app = express();
-const upload = multer();
 
 // ✅ Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(upload.none()); // ✅ IMPORTANT for FormData
+
+// ✅ VERY IMPORTANT (for file access)
+app.use("/uploads", express.static("uploads"));
 
 // ✅ Routes
 app.use("/api/requests", requestRoutes);
@@ -22,8 +22,8 @@ db.authenticate()
   .then(() => console.log("Database connected"))
   .catch(err => console.log(err));
 
-db.sync()
-  .then(() => console.log("Table created"))
+db.sync({ alter: true }) // ✅ update table
+  .then(() => console.log("Table synced"))
   .catch(err => console.log(err));
 
 // ✅ Server
