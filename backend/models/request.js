@@ -2,21 +2,27 @@ const { DataTypes } = require("sequelize");
 const db = require("../config/database");
 
 const Request = db.define("Request", {
-  date: { type: DataTypes.STRING, allowNull: true },
-  partNo: { type: DataTypes.STRING, allowNull: true },
-  description: { type: DataTypes.TEXT, allowNull: true },
-  platformCode: { type: DataTypes.STRING, allowNull: true },
-  productCode: { type: DataTypes.STRING, allowNull: true },
-  customer: { type: DataTypes.STRING, allowNull: true },
-  samples: { type: DataTypes.INTEGER, allowNull: true },
-  testType: { type: DataTypes.STRING, allowNull: true },
-  category: { type: DataTypes.STRING, allowNull: true },
-  testDetails: { type: DataTypes.TEXT, allowNull: true },
-  special: { type: DataTypes.TEXT, allowNull: true },
-  criteria: { type: DataTypes.TEXT, allowNull: true },
-  spec: { type: DataTypes.STRING, allowNull: true },
-  testName: { type: DataTypes.STRING, allowNull: true },
-  filePath: { type: DataTypes.STRING, allowNull: true }
+  date: DataTypes.STRING,
+  partNo: DataTypes.STRING,
+  description: DataTypes.TEXT,
+  platformCode: DataTypes.STRING,
+  productCode: DataTypes.STRING,
+  customer: DataTypes.STRING,
+  samples: DataTypes.INTEGER,
+  testType: DataTypes.STRING,
+  category: DataTypes.STRING,
+  testDetails: DataTypes.TEXT,
+  special: DataTypes.TEXT,
+  criteria: DataTypes.TEXT,
+  spec: DataTypes.STRING,
+  testName: DataTypes.STRING,
+
+  filePath: DataTypes.STRING,
+  allocationPlNo: DataTypes.STRING,
+  status: {
+    type: DataTypes.STRING,
+    defaultValue: "Pending"
+  }
 
 }, {
   tableName: "requests",

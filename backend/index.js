@@ -1,32 +1,33 @@
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 
 const db = require("./config/database");
 const requestRoutes = require("./routes/requestRoutes");
 
 const app = express();
 
-// ✅ Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ VERY IMPORTANT (for file access)
-app.use("/uploads", express.static("uploads"));
+// STATIC FILES
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// ✅ Routes
+// ROUTES
 app.use("/api/requests", requestRoutes);
 
-// ✅ DB
+// DB CONNECT
 db.authenticate()
   .then(() => console.log("Database connected"))
   .catch(err => console.log(err));
 
-db.sync({ alter: true }) // ✅ update table
+// AUTO UPDATE TABLE
+db.sync({ alter: true })
   .then(() => console.log("Table synced"))
   .catch(err => console.log(err));
 
-// ✅ Server
+// SERVER
 app.listen(5000, () => {
   console.log("Server running on port 5000");
 });
