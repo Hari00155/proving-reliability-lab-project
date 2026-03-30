@@ -21,9 +21,7 @@
       </div>
 
       <div class="col-md-2">
-        <button class="btn btn-primary w-100" @click="loadRequests">
-          🔄 Refresh
-        </button>
+        <button class="btn btn-primary w-100" @click="loadRequests">🔄 Refresh</button>
       </div>
     </div>
 
@@ -49,11 +47,8 @@
 
             <td>{{ req.requestNo }}</td>
 
-            <!-- ✅ PL NO -->
             <td>
-              <span v-if="req.status === 'Approved' || req.status === 'Completed'">
-                {{ req.allocationPlNo }}
-              </span>
+              <span v-if="req.allocationPlNo">{{ req.allocationPlNo }}</span>
               <span v-else class="text-muted">-</span>
             </td>
 
@@ -68,13 +63,26 @@
               <span :class="['badge-status', statusClass(req.status)]">
                 {{ req.status }}
               </span>
+
+              <!-- 🔥 REJECT REASON -->
+              <div v-if="req.status === 'Rejected'" class="text-danger small">
+                {{ req.rejectReason }}
+              </div>
             </td>
 
             <td>
               <button class="btn btn-info btn-sm" @click="viewRequest(req)">View</button>
               <button class="btn btn-warning btn-sm" @click="editRequest(req)">Edit</button>
-              <button class="btn btn-success btn-sm" @click="updateStatus(req.id,'Approved')">✔</button>
-              <button class="btn btn-danger btn-sm" @click="updateStatus(req.id,'Rejected')">✖</button>
+
+              <!-- APPROVE -->
+              <button class="btn btn-success btn-sm" @click="approveRequest(req)">✔</button>
+
+              <!-- ❌ REJECT (UPDATED) -->
+              <button class="btn btn-danger btn-sm" @click="openReject(req)">✖</button>
+
+              <!-- ALLOCATION -->
+              <button class="btn btn-primary btn-sm" @click="openAllocation(req)">Allocate</button>
+
               <button class="btn btn-dark btn-sm" @click="deleteRequest(req.id)">🗑</button>
             </td>
 
@@ -86,178 +94,123 @@
     <!-- VIEW MODAL -->
     <div v-if="selectedRequest" class="modal-overlay">
       <div class="modal-box">
-
         <h4>📄 Full Details</h4>
 
         <div class="grid">
           <p><b>Request No:</b> {{ selectedRequest.requestNo }}</p>
-
-          <p v-if="selectedRequest.status === 'Approved' || selectedRequest.status === 'Completed'">
-            <b>PL No:</b> {{ selectedRequest.allocationPlNo }}
-          </p>
-
+          <p><b>PL No:</b> {{ selectedRequest.allocationPlNo }}</p>
+          <p><b>Part No:</b> {{ selectedRequest.partNo }}</p>
           <p><b>Description:</b> {{ selectedRequest.description }}</p>
           <p><b>Platform Code:</b> {{ selectedRequest.platformCode }}</p>
           <p><b>Product Code:</b> {{ selectedRequest.productCode }}</p>
           <p><b>Customer:</b> {{ selectedRequest.customer }}</p>
-          <p><b>No of Samples:</b> {{ selectedRequest.samples }}</p>
+          <p><b>Samples:</b> {{ selectedRequest.samples }}</p>
           <p><b>Test Type:</b> {{ selectedRequest.testType }}</p>
-          <p><b>Test Category:</b> {{ selectedRequest.category }}</p>
+          <p><b>Category:</b> {{ selectedRequest.category }}</p>
           <p><b>Test Details:</b> {{ selectedRequest.testDetails }}</p>
-          <p><b>Special Features:</b> {{ selectedRequest.special }}</p>
-          <p><b>Acceptance Criteria:</b> {{ selectedRequest.criteria }}</p>
-          <p><b>Specification:</b> {{ selectedRequest.spec }}</p>
+          <p><b>Special:</b> {{ selectedRequest.special }}</p>
+          <p><b>Criteria:</b> {{ selectedRequest.criteria }}</p>
+          <p><b>Spec:</b> {{ selectedRequest.spec }}</p>
           <p><b>Test Name:</b> {{ selectedRequest.testName }}</p>
 
-          <!-- ✅ ATTACHMENT -->
+          <!-- ATTACHMENT -->
           <p>
             <b>Attachment:</b>
-
             <span v-if="selectedRequest.filePath">
-              <a 
-                :href="'http://localhost:5000/uploads/' + selectedRequest.filePath"
-                target="_blank"
-                class="btn btn-sm btn-info me-2"
-              >
-                View
-              </a>
-
-              <a 
-                :href="'http://localhost:5000/uploads/' + selectedRequest.filePath"
-                download
-                class="btn btn-sm btn-success"
-              >
-                Download
-              </a>
+              <a :href="'http://localhost:5000/uploads/' + selectedRequest.filePath"
+                 target="_blank" class="btn btn-sm btn-info me-2">View</a>
+              <a :href="'http://localhost:5000/uploads/' + selectedRequest.filePath"
+                 download class="btn btn-sm btn-success">Download</a>
             </span>
-
             <span v-else>-</span>
           </p>
-
         </div>
 
-        <button class="btn btn-secondary mt-2" @click="selectedRequest=null">
-          Close
-        </button>
+        <button class="btn btn-secondary mt-2" @click="selectedRequest=null">Close</button>
       </div>
     </div>
 
     <!-- EDIT MODAL -->
     <div v-if="editData" class="modal-overlay">
       <div class="modal-box">
-
         <h4>✏ Edit Request</h4>
 
         <div class="grid">
+          <div><label>Part No</label><input class="form-control" v-model="editData.partNo" /></div>
+          <div><label>Description</label><textarea class="form-control" v-model="editData.description"></textarea></div>
+          <div><label>Platform Code</label><input class="form-control" v-model="editData.platformCode" /></div>
+          <div><label>Product Code</label><input class="form-control" v-model="editData.productCode" /></div>
+          <div><label>Customer</label><input class="form-control" v-model="editData.customer" /></div>
+          <div><label>No of Samples</label><input type="number" class="form-control" v-model="editData.samples" /></div>
+
+          <div><label>Test Type</label><input class="form-control" v-model="editData.testType" /></div>
+          <div><label>Category</label><input class="form-control" v-model="editData.category" /></div>
+          <div><label>Test Details</label><textarea class="form-control" v-model="editData.testDetails"></textarea></div>
+          <div><label>Special</label><textarea class="form-control" v-model="editData.special"></textarea></div>
+          <div><label>Criteria</label><textarea class="form-control" v-model="editData.criteria"></textarea></div>
+          <div><label>Spec</label><input class="form-control" v-model="editData.spec" /></div>
+          <div><label>Test Name</label><input class="form-control" v-model="editData.testName" /></div>
 
           <div>
-            <label>Request No</label>
-            <input class="form-control" v-model="editData.requestNo" readonly />
-          </div>
-
-          <div>
-            <label>PL No</label>
-            <input class="form-control"
-              v-model="editData.allocationPlNo"
-              :readonly="editData.status !== 'Approved' && editData.status !== 'Completed'" />
-          </div>
-
-          <div>
-            <label>User</label>
-            <input class="form-control" v-model="editData.userName" readonly />
-          </div>
-
-          <div>
-            <label>Dept</label>
-            <input class="form-control" v-model="editData.deptId" readonly />
-          </div>
-
-          <div>
-            <label>Date</label>
-            <input type="date" class="form-control" v-model="editData.date" />
-          </div>
-
-          <div>
-            <label>Part No</label>
-            <input class="form-control" v-model="editData.partNo" />
-          </div>
-
-          <div>
-            <label>Customer</label>
-            <input class="form-control" v-model="editData.customer" />
-          </div>
-
-          <div>
-            <label>Platform Code</label>
-            <input class="form-control" v-model="editData.platformCode" />
-          </div>
-
-          <div>
-            <label>Product Code</label>
-            <input class="form-control" v-model="editData.productCode" />
-          </div>
-
-          <div>
-            <label>No of Samples</label>
-            <input type="number" class="form-control" v-model="editData.samples" />
-          </div>
-
-          <div>
-            <label>Test Type</label>
-            <input class="form-control" v-model="editData.testType" />
-          </div>
-
-          <div>
-            <label>Test Category</label>
-            <input class="form-control" v-model="editData.category" />
-          </div>
-
-          <div>
-            <label>Specification</label>
-            <input class="form-control" v-model="editData.spec" />
-          </div>
-
-          <div>
-            <label>Test Name</label>
-            <input class="form-control" v-model="editData.testName" />
-          </div>
-
-          <div class="col-12">
-            <label>Description</label>
-            <textarea class="form-control" v-model="editData.description"></textarea>
-          </div>
-
-          <div class="col-12">
-            <label>Upload File</label>
+            <label>Attachment</label>
             <input type="file" class="form-control" @change="handleFile" />
           </div>
 
-          <!-- ✅ CURRENT FILE -->
-          <div class="col-12" v-if="editData.filePath">
+          <div v-if="editData.filePath">
             <label>Current File</label><br>
-
-            <a 
-              :href="'http://localhost:5000/uploads/' + editData.filePath"
-              target="_blank"
-              class="btn btn-sm btn-info me-2"
-            >
-              View
-            </a>
-
-            <a 
-              :href="'http://localhost:5000/uploads/' + editData.filePath"
-              download
-              class="btn btn-sm btn-success"
-            >
-              Download
-            </a>
+            <a :href="'http://localhost:5000/uploads/' + editData.filePath"
+               target="_blank" class="btn btn-sm btn-info me-2">View</a>
+            <a :href="'http://localhost:5000/uploads/' + editData.filePath"
+               download class="btn btn-sm btn-success">Download</a>
           </div>
-
         </div>
 
         <div class="text-end mt-3">
-          <button class="btn btn-success me-2" @click="saveEdit">Save</button>
+          <button class="btn btn-success" @click="saveEdit">Save</button>
           <button class="btn btn-secondary" @click="editData=null">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ALLOCATION -->
+    <div v-if="allocationData" class="modal-overlay">
+      <div class="modal-box">
+        <h4>🧪 Allocation Panel</h4>
+
+        <p><b>Req No:</b> {{ allocationData.requestNo }}</p>
+        <p><b>PL No:</b> {{ allocationData.allocationPlNo }}</p>
+
+        <label>Test Rig</label>
+        <select v-model="allocationData.testRig" class="form-control">
+          <option>OV-12</option>
+          <option>OV-13</option>
+          <option>ETE-46</option>
+          <option>ETE-60</option>
+        </select>
+
+        <label class="mt-2">Start Date</label>
+        <input type="date" v-model="allocationData.startDate" class="form-control" />
+
+        <div class="text-end mt-3">
+          <button class="btn btn-success" @click="submitAllocation">Submit</button>
+          <button class="btn btn-secondary" @click="allocationData=null">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ❌ REJECT MODAL -->
+    <div v-if="rejectData" class="modal-overlay">
+      <div class="modal-box">
+
+        <h4>❌ Reject Request</h4>
+
+        <p><b>Req No:</b> {{ rejectData.requestNo }}</p>
+
+        <textarea v-model="rejectData.rejectReason" class="form-control"></textarea>
+
+        <div class="text-end mt-3">
+          <button class="btn btn-danger" @click="submitReject">Submit</button>
+          <button class="btn btn-secondary" @click="rejectData=null">Cancel</button>
         </div>
 
       </div>
@@ -275,6 +228,8 @@ export default {
       requests: [],
       selectedRequest: null,
       editData: null,
+      allocationData: null,
+      rejectData: null,
       file: null,
       searchText: "",
       searchStatus: ""
@@ -283,19 +238,10 @@ export default {
 
   computed: {
     filteredRequests() {
-      return this.requests.filter(req => {
-        const text = this.searchText.toLowerCase();
-
-        return (
-          (req.requestNo || "").toLowerCase().includes(text) ||
-          (req.allocationPlNo || "").toLowerCase().includes(text) ||
-          (req.partNo || "").toLowerCase().includes(text) ||
-          (req.customer || "").toLowerCase().includes(text) ||
-          (req.userName || "").toLowerCase().includes(text) ||
-          (req.deptId || "").toLowerCase().includes(text)
-        ) &&
-        (this.searchStatus === "" || req.status === this.searchStatus);
-      });
+      return this.requests.filter(r =>
+        (r.requestNo || "").toLowerCase().includes(this.searchText.toLowerCase()) &&
+        (this.searchStatus === "" || r.status === this.searchStatus)
+      );
     }
   },
 
@@ -304,13 +250,9 @@ export default {
   },
 
   methods: {
-    statusClass(status) {
-      if (!status) return "pending";
-      const s = status.toLowerCase().trim();
-      if (s === "approved") return "approved";
-      if (s === "rejected") return "rejected";
-      if (s === "completed") return "completed";
-      return "pending";
+
+    statusClass(s) {
+      return s?.toLowerCase() || "pending";
     },
 
     async loadRequests() {
@@ -318,41 +260,40 @@ export default {
       this.requests = res.data;
     },
 
-    viewRequest(req) {
-      this.selectedRequest = req;
-    },
+    viewRequest(r) { this.selectedRequest = r; },
+    editRequest(r) { this.editData = { ...r }; },
 
-    editRequest(req) {
-      this.editData = { ...req };
-    },
-
-    handleFile(e) {
-      this.file = e.target.files[0];
-    },
+    handleFile(e) { this.file = e.target.files[0]; },
 
     async saveEdit() {
-      const formData = new FormData();
+      const fd = new FormData();
+      Object.keys(this.editData).forEach(k => fd.append(k, this.editData[k] || ""));
+      if (this.file) fd.append("file", this.file);
 
-      Object.keys(this.editData).forEach(key => {
-        formData.append(key, this.editData[key] || "");
-      });
-
-      if (this.file) {
-        formData.append("file", this.file);
-      }
-
-      await axios.put(
-        `http://localhost:5000/api/requests/${this.editData.id}`,
-        formData
-      );
-
+      await axios.put(`http://localhost:5000/api/requests/${this.editData.id}`, fd);
       alert("Updated ✅");
       this.editData = null;
       this.loadRequests();
     },
 
-    async updateStatus(id, status) {
-      await axios.put(`http://localhost:5000/api/requests/${id}`, { status });
+    async approveRequest(req) {
+      await axios.put(`http://localhost:5000/api/requests/${req.id}`, {
+        status: "Approved"
+      });
+      this.loadRequests();
+    },
+
+    openReject(req) {
+      this.rejectData = { ...req };
+    },
+
+    async submitReject() {
+      await axios.put(`http://localhost:5000/api/requests/${this.rejectData.id}`, {
+        status: "Rejected",
+        rejectReason: this.rejectData.rejectReason
+      });
+      alert("Rejected ❌");
+      this.rejectData = null;
       this.loadRequests();
     },
 
@@ -361,24 +302,33 @@ export default {
         await axios.delete(`http://localhost:5000/api/requests/${id}`);
         this.loadRequests();
       }
+    },
+
+    openAllocation(req) {
+      this.allocationData = { ...req };
+    },
+
+    async submitAllocation() {
+      await axios.put(`http://localhost:5000/api/requests/${this.allocationData.id}`, {
+        status: "Approved",
+        testRig: this.allocationData.testRig,
+        startDate: this.allocationData.startDate
+      });
+
+      alert("Allocated ✅");
+      this.allocationData = null;
+      this.loadRequests();
     }
+
   }
 };
 </script>
 
 <style>
-.title { font-weight: bold; }
-
-.custom-table thead {
-  background: #2c3e50;
-  color: white;
-}
-
 .badge-status {
   padding: 5px 12px;
   border-radius: 20px;
   font-weight: bold;
-  font-size: 12px;
   color: white;
 }
 
@@ -401,8 +351,7 @@ export default {
   background: white;
   padding: 20px;
   width: 800px;
-  max-height: 90vh;
-  overflow-y: auto;
+  border-radius: 10px;
 }
 
 .grid {
