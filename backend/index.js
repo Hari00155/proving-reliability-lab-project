@@ -7,27 +7,26 @@ const requestRoutes = require("./routes/requestRoutes");
 
 const app = express();
 
+// ================= MIDDLEWARE =================
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// STATIC FILES
+// ================= STATIC FILE =================
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// ROUTES
+// ================= ROUTES =================
 app.use("/api/requests", requestRoutes);
 
-// DB CONNECT
-db.authenticate()
-  .then(() => console.log("Database connected"))
-  .catch(err => console.log(err));
+// ================= DB SYNC (FIX HERE) =================
+db.sync({ alter: true })   // ✅ VERY IMPORTANT FIX
+  .then(() => {
+    console.log("✅ Database synced");
 
-// AUTO UPDATE TABLE
-db.sync({ alter: true })
-  .then(() => console.log("Table synced"))
-  .catch(err => console.log(err));
-
-// SERVER
-app.listen(5000, () => {
-  console.log("Server running on port 5000");
-});
+    app.listen(5000, () => {
+      console.log("🚀 Server running on http://localhost:5000");
+    });
+  })
+  .catch((err) => {
+    console.error("❌ DB ERROR:", err);
+  });

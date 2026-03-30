@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 
+const upload = require("../middlewares/upload");
+
 const {
   createRequest,
   getRequests,
@@ -10,29 +12,18 @@ const {
   deleteRequest
 } = require("../controllers/requestController");
 
-const upload = require("../middlewares/upload");
-
-
-// ================= CREATE =================
+// CREATE
 router.post("/", upload.single("file"), createRequest);
 
-
-// ================= GET (IMPORTANT ORDER) =================
-
-// ✅ SPECIFIC ROUTES FIRST
+// IMPORTANT ORDER
 router.get("/today", getTodayRequests);
 router.get("/archive", getArchiveRequests);
-
-// ✅ GENERAL ROUTE LAST
 router.get("/", getRequests);
 
-
-// ================= UPDATE =================
+// UPDATE
 router.put("/:id", upload.single("file"), updateRequest);
 
-
-// ================= DELETE =================
+// DELETE
 router.delete("/:id", deleteRequest);
-
 
 module.exports = router;

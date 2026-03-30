@@ -1,27 +1,47 @@
 const { Op } = require("sequelize");
 const Request = require("../models/request");
 
-
 // ================= CREATE =================
 exports.createRequest = async (req, res) => {
   try {
-    const today = new Date().toISOString().split("T")[0];
+    const today = new Date().toLocaleDateString("en-CA");
+
+    const count = await Request.count().catch(() => 0);
+    const year = new Date().getFullYear();
+
+    const requestNo = `REQ-${year}-${String(count + 1).padStart(4, "0")}`;
 
     const newRequest = await Request.create({
-      ...req.body,
+      requestNo,
+      userName: req.body.userName || "User",
+      deptId: req.body.deptId || "D001",
+
       date: req.body.date || today,
+      partNo: req.body.partNo || "",
+      description: req.body.description || "",
+      platformCode: req.body.platformCode || "",
+      productCode: req.body.productCode || "",
+      customer: req.body.customer || "",
+      samples: req.body.samples || 0,
+      testType: req.body.testType || "",
+      category: req.body.category || "",
+      testDetails: req.body.testDetails || "",
+      special: req.body.special || "",
+      criteria: req.body.criteria || "",
+      spec: req.body.spec || "",
+      testName: req.body.testName || "",
+
       filePath: req.file ? req.file.filename : null,
       status: "Pending"
     });
 
     res.status(201).json(newRequest);
 
-  } catch (error) {
-    console.error("CREATE ERROR:", error);
-    res.status(500).json({ error: error.message });
+  } catch (err) {
+    console.error("CREATE ERROR:", err);
+    res.status(500).json({ error: err.message });
   }
 };
-
 
 // ================= GET ALL =================
 exports.getRequests = async (req, res) => {
@@ -32,61 +52,11 @@ exports.getRequests = async (req, res) => {
 
     res.json(data);
 
-  } catch (error) {
-    console.error("GET ERROR:", error);
-    res.status(500).json({ error: error.message });
+  } catch (err) {
+    console.error("GET ERROR:", err);
+    res.status(500).json({ error: err.message });
   }
 };
-
-
-// ================= GET TODAY =================
-exports.getTodayRequests = async (req, res) => {
-  try {
-    // ✅ FIX: use LOCAL DATE (India safe)
-    const today = new Date().toLocaleDateString("en-CA"); // yyyy-mm-dd
-
-    console.log("TODAY:", today);
-
-    const data = await Request.findAll({
-      where: {
-        date: today
-      },
-      order: [["createdAt", "DESC"]]
-    });
-
-    res.json(data);
-
-  } catch (error) {
-    console.error("TODAY ERROR:", error);
-    res.status(500).json({ error: error.message });
-  }
-};
-
-
-// ================= GET ARCHIVE =================
-exports.getArchiveRequests = async (req, res) => {
-  try {
-    const today = new Date().toLocaleDateString("en-CA");
-
-    console.log("ARCHIVE TODAY:", today);
-
-    const data = await Request.findAll({
-      where: {
-        date: {
-          [Op.lt]: today   // works correctly now
-        }
-      },
-      order: [["createdAt", "DESC"]]
-    });
-
-    res.json(data);
-
-  } catch (error) {
-    console.error("ARCHIVE ERROR:", error);
-    res.status(500).json({ error: error.message });
-  }
-};
-
 
 // ================= UPDATE =================
 exports.updateRequest = async (req, res) => {
@@ -95,7 +65,6 @@ exports.updateRequest = async (req, res) => {
 
     let updateData = { ...req.body };
 
-    // FILE UPDATE
     if (req.file) {
       updateData.filePath = req.file.filename;
     }
@@ -106,47 +75,51 @@ exports.updateRequest = async (req, res) => {
       return res.status(404).json({ error: "Request not found" });
     }
 
-    // AUTO PL NUMBER
+    // ================= 🔥 PL NUMBER FIX =================
     if (
       updateData.status === "Approved" &&
       !existing.allocationPlNo
     ) {
-      const approvedCount = await Request.count({
-        where: { status: "Approved" }
-      });
-
       const year = new Date().getFullYear();
 
+      // ✅ GET LAST PL NUMBER
+      const last = await Request.findOne({
+        where: {
+          allocationPlNo: { [Op.ne]: null }
+        },
+        order: [["allocationPlNo", "DESC"]]
+      });
+
+      let nextNumber = 1;
+
+      if (last && last.allocationPlNo) {
+        const lastNumber = parseInt(last.allocationPlNo.split("-")[2]);
+        nextNumber = lastNumber + 1;
+      }
+
       updateData.allocationPlNo =
-        `PL-${year}-${String(approvedCount + 1).padStart(4, "0")}`;
+        `PL-${year}-${String(nextNumber).padStart(4, "0")}`;
     }
 
-    await Request.update(updateData, {
-      where: { id }
-    });
+    await Request.update(updateData, { where: { id } });
 
     res.json({ message: "Updated Successfully" });
 
-  } catch (error) {
-    console.error("UPDATE ERROR:", error);
-    res.status(500).json({ error: error.message });
+  } catch (err) {
+    console.error("UPDATE ERROR:", err);
+    res.status(500).json({ error: err.message });
   }
 };
-
 
 // ================= DELETE =================
 exports.deleteRequest = async (req, res) => {
   try {
-    const { id } = req.params;
-
-    await Request.destroy({
-      where: { id }
-    });
+    await Request.destroy({ where: { id: req.params.id } });
 
     res.json({ message: "Deleted Successfully" });
 
-  } catch (error) {
-    console.error("DELETE ERROR:", error);
-    res.status(500).json({ error: error.message });
+  } catch (err) {
+    console.error("DELETE ERROR:", err);
+    res.status(500).json({ error: err.message });
   }
 };

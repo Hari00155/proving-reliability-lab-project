@@ -3,57 +3,81 @@
 
     <h2 class="title">🛠 Admin Panel - Requests</h2>
 
+    <!-- SEARCH -->
+    <div class="row mb-3">
+      <div class="col-md-4">
+        <input v-model="searchText" class="form-control"
+          placeholder="Search (Req No / PL No / Part / Customer / User / Dept)" />
+      </div>
+
+      <div class="col-md-3">
+        <select v-model="searchStatus" class="form-control">
+          <option value="">All Status</option>
+          <option>Pending</option>
+          <option>Approved</option>
+          <option>Rejected</option>
+          <option>Completed</option>
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <button class="btn btn-primary w-100" @click="loadRequests">
+          🔄 Refresh
+        </button>
+      </div>
+    </div>
+
     <!-- TABLE -->
     <div class="table-responsive">
       <table class="table custom-table">
         <thead>
           <tr>
+            <th>Req No</th>
+            <th>PL No</th>
             <th>Date</th>
+            <th>User</th>
+            <th>Dept</th>
             <th>Part No</th>
             <th>Customer</th>
-            <th>Test Type</th>
-            <th>Attachment</th>
-            <th>PL No</th>
             <th>Status</th>
             <th>Actions</th>
           </tr>
         </thead>
 
         <tbody>
-          <tr v-for="req in requests" :key="req.id">
-            <td>{{ req.date }}</td>
-            <td>{{ req.partNo }}</td>
-            <td>{{ req.customer }}</td>
-            <td>{{ req.testType }}</td>
+          <tr v-for="req in filteredRequests" :key="req.id">
 
-            <!-- FILE -->
+            <td>{{ req.requestNo }}</td>
+
+            <!-- ✅ PL NO -->
             <td>
-              <a v-if="req.filePath"
-                :href="fileUrl(req.filePath)"
-                target="_blank"
-                class="btn btn-sm btn-primary">
-                View
-              </a>
-              <span v-else class="text-muted">No File</span>
+              <span v-if="req.status === 'Approved' || req.status === 'Completed'">
+                {{ req.allocationPlNo }}
+              </span>
+              <span v-else class="text-muted">-</span>
             </td>
 
-            <td>{{ req.allocationPlNo || "-" }}</td>
+            <td>{{ req.date }}</td>
+            <td>{{ req.userName }}</td>
+            <td>{{ req.deptId }}</td>
+            <td>{{ req.partNo }}</td>
+            <td>{{ req.customer }}</td>
 
             <!-- STATUS -->
             <td>
-              <span :class="statusClass(req.status)">
+              <span :class="['badge-status', statusClass(req.status)]">
                 {{ req.status }}
               </span>
             </td>
 
-            <!-- ACTIONS -->
             <td>
-              <button class="btn btn-info btn-sm me-1" @click="viewRequest(req)">View</button>
-              <button class="btn btn-warning btn-sm me-1" @click="editRequest(req)">Edit</button>
-              <button class="btn btn-success btn-sm me-1" @click="updateStatus(req.id,'Approved')">✔</button>
-              <button class="btn btn-danger btn-sm me-1" @click="updateStatus(req.id,'Rejected')">✖</button>
+              <button class="btn btn-info btn-sm" @click="viewRequest(req)">View</button>
+              <button class="btn btn-warning btn-sm" @click="editRequest(req)">Edit</button>
+              <button class="btn btn-success btn-sm" @click="updateStatus(req.id,'Approved')">✔</button>
+              <button class="btn btn-danger btn-sm" @click="updateStatus(req.id,'Rejected')">✖</button>
               <button class="btn btn-dark btn-sm" @click="deleteRequest(req.id)">🗑</button>
             </td>
+
           </tr>
         </tbody>
       </table>
@@ -61,73 +85,174 @@
 
     <!-- VIEW MODAL -->
     <div v-if="selectedRequest" class="modal-overlay">
-      <div class="modal-box large">
+      <div class="modal-box">
 
         <h4>📄 Full Details</h4>
 
         <div class="grid">
-          <p><b>Date:</b> {{ selectedRequest.date }}</p>
-          <p><b>Part No:</b> {{ selectedRequest.partNo }}</p>
+          <p><b>Request No:</b> {{ selectedRequest.requestNo }}</p>
+
+          <p v-if="selectedRequest.status === 'Approved' || selectedRequest.status === 'Completed'">
+            <b>PL No:</b> {{ selectedRequest.allocationPlNo }}
+          </p>
+
           <p><b>Description:</b> {{ selectedRequest.description }}</p>
-          <p><b>Platform:</b> {{ selectedRequest.platformCode }}</p>
+          <p><b>Platform Code:</b> {{ selectedRequest.platformCode }}</p>
           <p><b>Product Code:</b> {{ selectedRequest.productCode }}</p>
           <p><b>Customer:</b> {{ selectedRequest.customer }}</p>
-          <p><b>Samples:</b> {{ selectedRequest.samples }}</p>
+          <p><b>No of Samples:</b> {{ selectedRequest.samples }}</p>
           <p><b>Test Type:</b> {{ selectedRequest.testType }}</p>
-          <p><b>Category:</b> {{ selectedRequest.category }}</p>
-          <p><b>Details:</b> {{ selectedRequest.testDetails }}</p>
-          <p><b>Special:</b> {{ selectedRequest.special }}</p>
-          <p><b>Criteria:</b> {{ selectedRequest.criteria }}</p>
-          <p><b>Spec:</b> {{ selectedRequest.spec }}</p>
+          <p><b>Test Category:</b> {{ selectedRequest.category }}</p>
+          <p><b>Test Details:</b> {{ selectedRequest.testDetails }}</p>
+          <p><b>Special Features:</b> {{ selectedRequest.special }}</p>
+          <p><b>Acceptance Criteria:</b> {{ selectedRequest.criteria }}</p>
+          <p><b>Specification:</b> {{ selectedRequest.spec }}</p>
           <p><b>Test Name:</b> {{ selectedRequest.testName }}</p>
-          <p><b>PL No:</b> {{ selectedRequest.allocationPlNo }}</p>
 
+          <!-- ✅ ATTACHMENT -->
           <p>
-            <b>File:</b>
-            <a v-if="selectedRequest.filePath"
-              :href="fileUrl(selectedRequest.filePath)"
-              target="_blank">
-              Download
-            </a>
+            <b>Attachment:</b>
+
+            <span v-if="selectedRequest.filePath">
+              <a 
+                :href="'http://localhost:5000/uploads/' + selectedRequest.filePath"
+                target="_blank"
+                class="btn btn-sm btn-info me-2"
+              >
+                View
+              </a>
+
+              <a 
+                :href="'http://localhost:5000/uploads/' + selectedRequest.filePath"
+                download
+                class="btn btn-sm btn-success"
+              >
+                Download
+              </a>
+            </span>
+
+            <span v-else>-</span>
           </p>
+
         </div>
 
-        <button class="btn btn-secondary mt-2" @click="selectedRequest=null">Close</button>
+        <button class="btn btn-secondary mt-2" @click="selectedRequest=null">
+          Close
+        </button>
       </div>
     </div>
 
     <!-- EDIT MODAL -->
     <div v-if="editData" class="modal-overlay">
-      <div class="modal-box large">
+      <div class="modal-box">
 
         <h4>✏ Edit Request</h4>
 
         <div class="grid">
 
-          <input v-model="editData.date" type="date" class="form-control"/>
-          <input v-model="editData.partNo" class="form-control" placeholder="Part No"/>
-          <input v-model="editData.customer" class="form-control" placeholder="Customer"/>
-          <input v-model="editData.platformCode" class="form-control" placeholder="Platform"/>
+          <div>
+            <label>Request No</label>
+            <input class="form-control" v-model="editData.requestNo" readonly />
+          </div>
 
-          <textarea v-model="editData.description" class="form-control" placeholder="Description"></textarea>
+          <div>
+            <label>PL No</label>
+            <input class="form-control"
+              v-model="editData.allocationPlNo"
+              :readonly="editData.status !== 'Approved' && editData.status !== 'Completed'" />
+          </div>
 
-          <input v-model="editData.productCode" class="form-control" placeholder="Product Code"/>
-          <input v-model="editData.samples" type="number" class="form-control" placeholder="Samples"/>
+          <div>
+            <label>User</label>
+            <input class="form-control" v-model="editData.userName" readonly />
+          </div>
 
-          <input v-model="editData.testType" class="form-control" placeholder="Test Type"/>
-          <input v-model="editData.category" class="form-control" placeholder="Category"/>
+          <div>
+            <label>Dept</label>
+            <input class="form-control" v-model="editData.deptId" readonly />
+          </div>
 
-          <textarea v-model="editData.testDetails" class="form-control" placeholder="Test Details"></textarea>
-          <textarea v-model="editData.special" class="form-control" placeholder="Special"></textarea>
-          <textarea v-model="editData.criteria" class="form-control" placeholder="Criteria"></textarea>
+          <div>
+            <label>Date</label>
+            <input type="date" class="form-control" v-model="editData.date" />
+          </div>
 
-          <input v-model="editData.spec" class="form-control" placeholder="Spec"/>
-          <input v-model="editData.testName" class="form-control" placeholder="Test Name"/>
+          <div>
+            <label>Part No</label>
+            <input class="form-control" v-model="editData.partNo" />
+          </div>
 
-          <!-- NEW -->
-          <input v-model="editData.allocationPlNo" class="form-control" placeholder="Allocation PL No"/>
+          <div>
+            <label>Customer</label>
+            <input class="form-control" v-model="editData.customer" />
+          </div>
 
-          <input type="file" class="form-control" @change="handleFile"/>
+          <div>
+            <label>Platform Code</label>
+            <input class="form-control" v-model="editData.platformCode" />
+          </div>
+
+          <div>
+            <label>Product Code</label>
+            <input class="form-control" v-model="editData.productCode" />
+          </div>
+
+          <div>
+            <label>No of Samples</label>
+            <input type="number" class="form-control" v-model="editData.samples" />
+          </div>
+
+          <div>
+            <label>Test Type</label>
+            <input class="form-control" v-model="editData.testType" />
+          </div>
+
+          <div>
+            <label>Test Category</label>
+            <input class="form-control" v-model="editData.category" />
+          </div>
+
+          <div>
+            <label>Specification</label>
+            <input class="form-control" v-model="editData.spec" />
+          </div>
+
+          <div>
+            <label>Test Name</label>
+            <input class="form-control" v-model="editData.testName" />
+          </div>
+
+          <div class="col-12">
+            <label>Description</label>
+            <textarea class="form-control" v-model="editData.description"></textarea>
+          </div>
+
+          <div class="col-12">
+            <label>Upload File</label>
+            <input type="file" class="form-control" @change="handleFile" />
+          </div>
+
+          <!-- ✅ CURRENT FILE -->
+          <div class="col-12" v-if="editData.filePath">
+            <label>Current File</label><br>
+
+            <a 
+              :href="'http://localhost:5000/uploads/' + editData.filePath"
+              target="_blank"
+              class="btn btn-sm btn-info me-2"
+            >
+              View
+            </a>
+
+            <a 
+              :href="'http://localhost:5000/uploads/' + editData.filePath"
+              download
+              class="btn btn-sm btn-success"
+            >
+              Download
+            </a>
+          </div>
+
         </div>
 
         <div class="text-end mt-3">
@@ -150,8 +275,28 @@ export default {
       requests: [],
       selectedRequest: null,
       editData: null,
-      file: null
+      file: null,
+      searchText: "",
+      searchStatus: ""
     };
+  },
+
+  computed: {
+    filteredRequests() {
+      return this.requests.filter(req => {
+        const text = this.searchText.toLowerCase();
+
+        return (
+          (req.requestNo || "").toLowerCase().includes(text) ||
+          (req.allocationPlNo || "").toLowerCase().includes(text) ||
+          (req.partNo || "").toLowerCase().includes(text) ||
+          (req.customer || "").toLowerCase().includes(text) ||
+          (req.userName || "").toLowerCase().includes(text) ||
+          (req.deptId || "").toLowerCase().includes(text)
+        ) &&
+        (this.searchStatus === "" || req.status === this.searchStatus);
+      });
+    }
   },
 
   mounted() {
@@ -159,18 +304,13 @@ export default {
   },
 
   methods: {
-
-    fileUrl(name){
-      return `http://localhost:5000/uploads/${name}`;
-    },
-
-    statusClass(status){
-      return {
-        badge: true,
-        pending: status === "Pending",
-        approved: status === "Approved",
-        rejected: status === "Rejected"
-      };
+    statusClass(status) {
+      if (!status) return "pending";
+      const s = status.toLowerCase().trim();
+      if (s === "approved") return "approved";
+      if (s === "rejected") return "rejected";
+      if (s === "completed") return "completed";
+      return "pending";
     },
 
     async loadRequests() {
@@ -178,26 +318,26 @@ export default {
       this.requests = res.data;
     },
 
-    viewRequest(req){
+    viewRequest(req) {
       this.selectedRequest = req;
     },
 
-    editRequest(req){
+    editRequest(req) {
       this.editData = { ...req };
     },
 
-    handleFile(e){
+    handleFile(e) {
       this.file = e.target.files[0];
     },
 
-    async saveEdit(){
+    async saveEdit() {
       const formData = new FormData();
 
       Object.keys(this.editData).forEach(key => {
-        formData.append(key, this.editData[key]);
+        formData.append(key, this.editData[key] || "");
       });
 
-      if(this.file){
+      if (this.file) {
         formData.append("file", this.file);
       }
 
@@ -211,13 +351,13 @@ export default {
       this.loadRequests();
     },
 
-    async updateStatus(id, status){
+    async updateStatus(id, status) {
       await axios.put(`http://localhost:5000/api/requests/${id}`, { status });
       this.loadRequests();
     },
 
-    async deleteRequest(id){
-      if(confirm("Delete?")){
+    async deleteRequest(id) {
+      if (confirm("Delete?")) {
         await axios.delete(`http://localhost:5000/api/requests/${id}`);
         this.loadRequests();
       }
@@ -227,34 +367,31 @@ export default {
 </script>
 
 <style>
-.title {
-  font-weight: bold;
-  color: #2c3e50;
-}
+.title { font-weight: bold; }
 
 .custom-table thead {
   background: #2c3e50;
   color: white;
 }
 
-.badge {
-  padding: 5px 10px;
-  border-radius: 8px;
+.badge-status {
+  padding: 5px 12px;
+  border-radius: 20px;
   font-weight: bold;
+  font-size: 12px;
+  color: white;
 }
 
-.pending { background: orange; color: white; }
-.approved { background: green; color: white; }
-.rejected { background: red; color: white; }
+.pending { background-color: #f1c40f; color: black; }
+.approved { background-color: #2ecc71; }
+.rejected { background-color: #e74c3c; }
+.completed { background-color: #3498db; }
 
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
   background: rgba(0,0,0,0.6);
-
   display: flex;
   justify-content: center;
   align-items: center;
@@ -263,14 +400,9 @@ export default {
 .modal-box {
   background: white;
   padding: 20px;
-  border-radius: 12px;
-  width: 700px;
+  width: 800px;
   max-height: 90vh;
   overflow-y: auto;
-}
-
-.large {
-  width: 800px;
 }
 
 .grid {

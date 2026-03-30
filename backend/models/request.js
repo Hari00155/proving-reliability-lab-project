@@ -2,6 +2,12 @@ const { DataTypes } = require("sequelize");
 const db = require("../config/database");
 
 const Request = db.define("Request", {
+
+  requestNo: DataTypes.STRING,
+
+  userName: DataTypes.STRING,
+  deptId: DataTypes.STRING,
+
   date: DataTypes.STRING,
   partNo: DataTypes.STRING,
   description: DataTypes.TEXT,
@@ -18,7 +24,13 @@ const Request = db.define("Request", {
   testName: DataTypes.STRING,
 
   filePath: DataTypes.STRING,
-  allocationPlNo: DataTypes.STRING,
+
+  // 🔥 IMPORTANT
+  allocationPlNo: {
+    type: DataTypes.STRING,
+    unique: true
+  },
+
   status: {
     type: DataTypes.STRING,
     defaultValue: "Pending"
