@@ -3,10 +3,21 @@ const db = require("../config/database");
 
 const Request = db.define("Request", {
 
-  requestNo: DataTypes.STRING,
+  requestNo: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
 
-  userName: DataTypes.STRING,
-  deptId: DataTypes.STRING,
+  userName: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    defaultValue: "User"
+  },
+
+  deptId: {
+    type: DataTypes.STRING,
+    defaultValue: "D001"
+  },
 
   date: DataTypes.STRING,
   partNo: DataTypes.STRING,
@@ -25,10 +36,11 @@ const Request = db.define("Request", {
 
   filePath: DataTypes.STRING,
 
-  // 🔥 IMPORTANT
+  // 🔥 FIX: Allow NULL for unique field
   allocationPlNo: {
     type: DataTypes.STRING,
-    unique: true
+    unique: true,
+    allowNull: true   // ✅ VERY IMPORTANT FIX
   },
 
   status: {

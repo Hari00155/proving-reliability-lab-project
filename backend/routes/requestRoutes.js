@@ -6,8 +6,6 @@ const upload = require("../middlewares/upload");
 const {
   createRequest,
   getRequests,
-  getTodayRequests,
-  getArchiveRequests,
   updateRequest,
   deleteRequest
 } = require("../controllers/requestController");
@@ -15,9 +13,7 @@ const {
 // CREATE
 router.post("/", upload.single("file"), createRequest);
 
-// IMPORTANT ORDER
-router.get("/today", getTodayRequests);
-router.get("/archive", getArchiveRequests);
+// GET ALL
 router.get("/", getRequests);
 
 // UPDATE

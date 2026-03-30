@@ -123,3 +123,37 @@ exports.deleteRequest = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+// ================= TODAY =================
+exports.getTodayRequests = async (req, res) => {
+  try {
+    const today = new Date().toLocaleDateString("en-CA");
+
+    const data = await Request.findAll({
+      where: { date: today },
+      order: [["createdAt", "DESC"]]
+    });
+
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// ================= ARCHIVE =================
+exports.getArchiveRequests = async (req, res) => {
+  try {
+    const today = new Date().toLocaleDateString("en-CA");
+
+    const data = await Request.findAll({
+      where: {
+        date: { [Op.ne]: today }
+      },
+      order: [["createdAt", "DESC"]]
+    });
+
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
