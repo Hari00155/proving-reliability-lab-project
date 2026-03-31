@@ -16,7 +16,6 @@
           <option>Pending</option>
           <option>Approved</option>
           <option>Rejected</option>
-          <option>Completed</option>
         </select>
       </div>
 
@@ -31,12 +30,10 @@
         <thead>
           <tr>
             <th>Req No</th>
-            <th>PL No</th>
-            <th>Date</th>
+            <th>PL No</th> <!-- ✅ ADDED -->
             <th>User</th>
             <th>Dept</th>
             <th>Part No</th>
-            <th>Customer</th>
             <th>Status</th>
             <th>Actions</th>
           </tr>
@@ -47,25 +44,20 @@
 
             <td>{{ req.requestNo }}</td>
 
-            <td>
-              <span v-if="req.allocationPlNo">{{ req.allocationPlNo }}</span>
-              <span v-else class="text-muted">-</span>
-            </td>
+            <!-- ✅ PL NUMBER -->
+            <td>{{ req.allocationPlNo || '-' }}</td>
 
-            <td>{{ req.date }}</td>
             <td>{{ req.userName }}</td>
             <td>{{ req.deptId }}</td>
             <td>{{ req.partNo }}</td>
-            <td>{{ req.customer }}</td>
 
-            <!-- STATUS -->
             <td>
               <span :class="['badge-status', statusClass(req.status)]">
                 {{ req.status }}
               </span>
 
-              <!-- 🔥 REJECT REASON -->
-              <div v-if="req.status === 'Rejected'" class="text-danger small">
+              <!-- ✅ REJECT REASON -->
+              <div v-if="req.status==='Rejected'" class="text-danger small">
                 {{ req.rejectReason }}
               </div>
             </td>
@@ -73,17 +65,13 @@
             <td>
               <button class="btn btn-info btn-sm" @click="viewRequest(req)">View</button>
               <button class="btn btn-warning btn-sm" @click="editRequest(req)">Edit</button>
-
-              <!-- APPROVE -->
-              <button class="btn btn-success btn-sm" @click="approveRequest(req)">✔</button>
-
-              <!-- ❌ REJECT (UPDATED) -->
+              <button class="btn btn-success btn-sm" @click="acceptRequest(req)">✔</button>
+              <button class="btn btn-primary btn-sm" @click="openAllocation(req)">Allocate</button>
               <button class="btn btn-danger btn-sm" @click="openReject(req)">✖</button>
 
-              <!-- ALLOCATION -->
-              <button class="btn btn-primary btn-sm" @click="openAllocation(req)">Allocate</button>
-
-              <button class="btn btn-dark btn-sm" @click="deleteRequest(req.id)">🗑</button>
+              <!-- ✅ ONLY SUPER ADMIN -->
+              <button v-if="role==='superadmin'" class="btn btn-dark btn-sm"
+                @click="deleteRequest(req.id)">🗑</button>
             </td>
 
           </tr>
@@ -91,78 +79,78 @@
       </table>
     </div>
 
-    <!-- VIEW MODAL -->
+    <!-- ================= VIEW ================= -->
     <div v-if="selectedRequest" class="modal-overlay">
       <div class="modal-box">
         <h4>📄 Full Details</h4>
 
         <div class="grid">
-          <p><b>Request No:</b> {{ selectedRequest.requestNo }}</p>
-          <p><b>PL No:</b> {{ selectedRequest.allocationPlNo }}</p>
+          <p><b>Req No:</b> {{ selectedRequest.requestNo }}</p>
+          <p><b>PL No:</b> {{ selectedRequest.allocationPlNo || '-' }}</p>
+
+          <p><b>User Name:</b> {{ selectedRequest.userName }}</p>
+          <p><b>Department:</b> {{ selectedRequest.deptId }}</p>
+
           <p><b>Part No:</b> {{ selectedRequest.partNo }}</p>
           <p><b>Description:</b> {{ selectedRequest.description }}</p>
+
           <p><b>Platform Code:</b> {{ selectedRequest.platformCode }}</p>
           <p><b>Product Code:</b> {{ selectedRequest.productCode }}</p>
+
           <p><b>Customer:</b> {{ selectedRequest.customer }}</p>
-          <p><b>Samples:</b> {{ selectedRequest.samples }}</p>
+          <p><b>No of Samples:</b> {{ selectedRequest.samples }}</p>
+
           <p><b>Test Type:</b> {{ selectedRequest.testType }}</p>
           <p><b>Category:</b> {{ selectedRequest.category }}</p>
+
           <p><b>Test Details:</b> {{ selectedRequest.testDetails }}</p>
-          <p><b>Special:</b> {{ selectedRequest.special }}</p>
-          <p><b>Criteria:</b> {{ selectedRequest.criteria }}</p>
-          <p><b>Spec:</b> {{ selectedRequest.spec }}</p>
+          <p><b>Special Features:</b> {{ selectedRequest.special }}</p>
+
+          <p><b>Acceptance Criteria:</b> {{ selectedRequest.criteria }}</p>
+          <p><b>Specification:</b> {{ selectedRequest.spec }}</p>
+
           <p><b>Test Name:</b> {{ selectedRequest.testName }}</p>
 
-          <!-- ATTACHMENT -->
-          <p>
-            <b>Attachment:</b>
-            <span v-if="selectedRequest.filePath">
-              <a :href="'http://localhost:5000/uploads/' + selectedRequest.filePath"
-                 target="_blank" class="btn btn-sm btn-info me-2">View</a>
-              <a :href="'http://localhost:5000/uploads/' + selectedRequest.filePath"
-                 download class="btn btn-sm btn-success">Download</a>
-            </span>
-            <span v-else>-</span>
-          </p>
+          <!-- ✅ ALLOCATION DETAILS -->
+          <p><b>Responsibility:</b> {{ selectedRequest.responsibility || '-' }}</p>
+          <p><b>Equipment No:</b> {{ selectedRequest.testRig || '-' }}</p>
+          <p><b>Start Date:</b> {{ selectedRequest.startDate || '-' }}</p>
         </div>
 
         <button class="btn btn-secondary mt-2" @click="selectedRequest=null">Close</button>
       </div>
     </div>
 
-    <!-- EDIT MODAL -->
+    <!-- ================= EDIT ================= -->
     <div v-if="editData" class="modal-overlay">
       <div class="modal-box">
         <h4>✏ Edit Request</h4>
 
         <div class="grid">
-          <div><label>Part No</label><input class="form-control" v-model="editData.partNo" /></div>
-          <div><label>Description</label><textarea class="form-control" v-model="editData.description"></textarea></div>
-          <div><label>Platform Code</label><input class="form-control" v-model="editData.platformCode" /></div>
-          <div><label>Product Code</label><input class="form-control" v-model="editData.productCode" /></div>
-          <div><label>Customer</label><input class="form-control" v-model="editData.customer" /></div>
-          <div><label>No of Samples</label><input type="number" class="form-control" v-model="editData.samples" /></div>
 
-          <div><label>Test Type</label><input class="form-control" v-model="editData.testType" /></div>
-          <div><label>Category</label><input class="form-control" v-model="editData.category" /></div>
-          <div><label>Test Details</label><textarea class="form-control" v-model="editData.testDetails"></textarea></div>
-          <div><label>Special</label><textarea class="form-control" v-model="editData.special"></textarea></div>
-          <div><label>Criteria</label><textarea class="form-control" v-model="editData.criteria"></textarea></div>
-          <div><label>Spec</label><input class="form-control" v-model="editData.spec" /></div>
-          <div><label>Test Name</label><input class="form-control" v-model="editData.testName" /></div>
+          <div><label>User Name</label><input v-model="editData.userName" class="form-control"/></div>
+          <div><label>Department</label><input v-model="editData.deptId" class="form-control"/></div>
 
-          <div>
-            <label>Attachment</label>
-            <input type="file" class="form-control" @change="handleFile" />
-          </div>
+          <div><label>Part No</label><input v-model="editData.partNo" class="form-control"/></div>
+          <div><label>Description</label><textarea v-model="editData.description" class="form-control"></textarea></div>
 
-          <div v-if="editData.filePath">
-            <label>Current File</label><br>
-            <a :href="'http://localhost:5000/uploads/' + editData.filePath"
-               target="_blank" class="btn btn-sm btn-info me-2">View</a>
-            <a :href="'http://localhost:5000/uploads/' + editData.filePath"
-               download class="btn btn-sm btn-success">Download</a>
-          </div>
+          <div><label>Platform Code</label><input v-model="editData.platformCode" class="form-control"/></div>
+          <div><label>Product Code</label><input v-model="editData.productCode" class="form-control"/></div>
+
+          <div><label>Customer</label><input v-model="editData.customer" class="form-control"/></div>
+          <div><label>No of Samples</label><input type="number" v-model="editData.samples" class="form-control"/></div>
+
+          <div><label>Test Type</label><input v-model="editData.testType" class="form-control"/></div>
+          <div><label>Category</label><input v-model="editData.category" class="form-control"/></div>
+
+          <div><label>Test Details</label><textarea v-model="editData.testDetails" class="form-control"></textarea></div>
+          <div><label>Special Features</label><textarea v-model="editData.special" class="form-control"></textarea></div>
+
+          <div><label>Acceptance Criteria</label><textarea v-model="editData.criteria" class="form-control"></textarea></div>
+          <div><label>Specification</label><input v-model="editData.spec" class="form-control"/></div>
+
+          <div><label>Test Name</label><input v-model="editData.testName" class="form-control"/></div>
+
         </div>
 
         <div class="text-end mt-3">
@@ -172,47 +160,45 @@
       </div>
     </div>
 
-    <!-- ALLOCATION -->
-    <div v-if="allocationData" class="modal-overlay">
+    <!-- ================= REJECT ================= -->
+    <div v-if="rejectData" class="modal-overlay">
       <div class="modal-box">
-        <h4>🧪 Allocation Panel</h4>
+        <h4>Reject Reason</h4>
+        <textarea v-model="rejectData.rejectReason" class="form-control"></textarea>
 
-        <p><b>Req No:</b> {{ allocationData.requestNo }}</p>
-        <p><b>PL No:</b> {{ allocationData.allocationPlNo }}</p>
-
-        <label>Test Rig</label>
-        <select v-model="allocationData.testRig" class="form-control">
-          <option>OV-12</option>
-          <option>OV-13</option>
-          <option>ETE-46</option>
-          <option>ETE-60</option>
-        </select>
-
-        <label class="mt-2">Start Date</label>
-        <input type="date" v-model="allocationData.startDate" class="form-control" />
-
-        <div class="text-end mt-3">
-          <button class="btn btn-success" @click="submitAllocation">Submit</button>
-          <button class="btn btn-secondary" @click="allocationData=null">Cancel</button>
-        </div>
+        <button class="btn btn-danger mt-2" @click="submitReject">Submit</button>
       </div>
     </div>
 
-    <!-- ❌ REJECT MODAL -->
-    <div v-if="rejectData" class="modal-overlay">
+    <!-- ================= ALLOCATION ================= -->
+    <div v-if="allocationData" class="modal-overlay">
       <div class="modal-box">
+        <h4>Allocation</h4>
 
-        <h4>❌ Reject Request</h4>
+        <label>Responsibility</label>
+        <select v-model="allocationData.responsibility" class="form-control">
+          <option>Admin</option>
+          <option>Test</option>
+        </select>
 
-        <p><b>Req No:</b> {{ rejectData.requestNo }}</p>
+        <label class="mt-2">Equipment No</label>
+        <select v-model="allocationData.testRig" class="form-control">
+          <optgroup label="OV">
+            <option>OV-12</option><option>OV-13</option><option>OV-14</option>
+            <option>OV-15</option><option>OV-16</option>
+          </optgroup>
+          <optgroup label="ETE">
+            <option>ETE-05</option><option>ETE-60</option><option>ETE-68</option>
+            <option>ETE-73</option><option>ETE-76</option>
+            <option>ETE-21</option><option>ETE-22</option>
+            <option>ETE-42</option><option>ETE-30</option>
+          </optgroup>
+        </select>
 
-        <textarea v-model="rejectData.rejectReason" class="form-control"></textarea>
+        <label class="mt-2">Tentative Start Date</label>
+        <input type="date" v-model="allocationData.startDate" class="form-control"/>
 
-        <div class="text-end mt-3">
-          <button class="btn btn-danger" @click="submitReject">Submit</button>
-          <button class="btn btn-secondary" @click="rejectData=null">Cancel</button>
-        </div>
-
+        <button class="btn btn-success mt-2" @click="submitAllocation">Submit</button>
       </div>
     </div>
 
@@ -228,19 +214,19 @@ export default {
       requests: [],
       selectedRequest: null,
       editData: null,
-      allocationData: null,
       rejectData: null,
-      file: null,
+      allocationData: null,
       searchText: "",
-      searchStatus: ""
+      searchStatus: "",
+      role: "admin"
     };
   },
 
   computed: {
     filteredRequests() {
       return this.requests.filter(r =>
-        (r.requestNo || "").toLowerCase().includes(this.searchText.toLowerCase()) &&
-        (this.searchStatus === "" || r.status === this.searchStatus)
+        (r.status === "Pending") &&
+        (r.requestNo || "").toLowerCase().includes(this.searchText.toLowerCase())
       );
     }
   },
@@ -262,29 +248,18 @@ export default {
 
     viewRequest(r) { this.selectedRequest = r; },
     editRequest(r) { this.editData = { ...r }; },
-
-    handleFile(e) { this.file = e.target.files[0]; },
+    openReject(r) { this.rejectData = { ...r }; },
+    openAllocation(r) { this.allocationData = { ...r }; },
 
     async saveEdit() {
-      const fd = new FormData();
-      Object.keys(this.editData).forEach(k => fd.append(k, this.editData[k] || ""));
-      if (this.file) fd.append("file", this.file);
-
-      await axios.put(`http://localhost:5000/api/requests/${this.editData.id}`, fd);
-      alert("Updated ✅");
+      await axios.put(`http://localhost:5000/api/requests/${this.editData.id}`, this.editData);
       this.editData = null;
       this.loadRequests();
     },
 
-    async approveRequest(req) {
-      await axios.put(`http://localhost:5000/api/requests/${req.id}`, {
-        status: "Approved"
-      });
+    async acceptRequest(req) {
+      await axios.put(`http://localhost:5000/api/requests/${req.id}`, { status: "Approved" });
       this.loadRequests();
-    },
-
-    openReject(req) {
-      this.rejectData = { ...req };
     },
 
     async submitReject() {
@@ -292,8 +267,21 @@ export default {
         status: "Rejected",
         rejectReason: this.rejectData.rejectReason
       });
-      alert("Rejected ❌");
       this.rejectData = null;
+      this.loadRequests();
+    },
+
+    async submitAllocation() {
+      await axios.put(`http://localhost:5000/api/requests/${this.allocationData.id}`, {
+        status: "Approved",
+        responsibility: this.allocationData.responsibility,
+        testRig: this.allocationData.testRig,
+        startDate: this.allocationData.startDate
+      });
+
+      await axios.post("http://localhost:5000/api/dailyupdates", this.allocationData);
+
+      this.allocationData = null;
       this.loadRequests();
     },
 
@@ -302,61 +290,8 @@ export default {
         await axios.delete(`http://localhost:5000/api/requests/${id}`);
         this.loadRequests();
       }
-    },
-
-    openAllocation(req) {
-      this.allocationData = { ...req };
-    },
-
-    async submitAllocation() {
-      await axios.put(`http://localhost:5000/api/requests/${this.allocationData.id}`, {
-        status: "Approved",
-        testRig: this.allocationData.testRig,
-        startDate: this.allocationData.startDate
-      });
-
-      alert("Allocated ✅");
-      this.allocationData = null;
-      this.loadRequests();
     }
 
   }
 };
 </script>
-
-<style>
-.badge-status {
-  padding: 5px 12px;
-  border-radius: 20px;
-  font-weight: bold;
-  color: white;
-}
-
-.pending { background-color: #f1c40f; color: black; }
-.approved { background-color: #2ecc71; }
-.rejected { background-color: #e74c3c; }
-.completed { background-color: #3498db; }
-
-.modal-overlay {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.6);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.modal-box {
-  background: white;
-  padding: 20px;
-  width: 800px;
-  border-radius: 10px;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-</style>
