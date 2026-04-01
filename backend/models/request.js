@@ -1,56 +1,73 @@
-const { DataTypes } = require("sequelize");
-const db = require("../config/database");
+module.exports = (sequelize, DataTypes) => {
+  const Request = sequelize.define("Request", {
 
-const Request = db.define("Request", {
+    // ===== BASIC =====
+    requestNo: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
 
-  requestNo: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
+    userName: DataTypes.STRING,
+    deptId: DataTypes.STRING,
+    date: DataTypes.DATEONLY,
 
-  userName: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    defaultValue: "User"
-  },
+    // ===== PART DETAILS =====
+    partNo: DataTypes.STRING,
+    description: DataTypes.TEXT,
+    platformCode: DataTypes.STRING,
+    productCode: DataTypes.STRING,
+    customer: DataTypes.STRING,
 
-  deptId: {
-    type: DataTypes.STRING,
-    defaultValue: "D001"
-  },
+    // ===== TEST =====
+    samples: DataTypes.INTEGER,
+    testType: DataTypes.STRING,
+    category: DataTypes.STRING,
+    testDetails: DataTypes.TEXT,
+    special: DataTypes.STRING,
+    criteria: DataTypes.STRING,
+    spec: DataTypes.STRING,
+    testName: DataTypes.STRING,
 
-  date: DataTypes.STRING,
-  partNo: DataTypes.STRING,
-  description: DataTypes.TEXT,
-  platformCode: DataTypes.STRING,
-  productCode: DataTypes.STRING,
-  customer: DataTypes.STRING,
-  samples: DataTypes.INTEGER,
-  testType: DataTypes.STRING,
-  category: DataTypes.STRING,
-  testDetails: DataTypes.TEXT,
-  special: DataTypes.TEXT,
-  criteria: DataTypes.TEXT,
-  spec: DataTypes.STRING,
-  testName: DataTypes.STRING,
+    // ===== FILE =====
+    attachment: DataTypes.TEXT,
+    attachmentName: DataTypes.STRING,
 
-  filePath: DataTypes.STRING,
+    // ===== STATUS =====
+    status: {
+      type: DataTypes.STRING,
+      defaultValue: "Pending"
+    },
 
-  // 🔥 FIX: Allow NULL for unique field
-  allocationPlNo: {
-    type: DataTypes.STRING,
-    unique: true,
-    allowNull: true   // ✅ VERY IMPORTANT FIX
-  },
+    // ===== ALLOCATION =====
+    allocationPlNo: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
 
-  status: {
-    type: DataTypes.STRING,
-    defaultValue: "Pending"
-  }
+    responsibility: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
 
-}, {
-  tableName: "requests",
-  timestamps: true
-});
+    testRig: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
 
-module.exports = Request;
+    startDate: {
+      type: DataTypes.DATEONLY,
+      allowNull: true
+    },
+
+    // ===== REJECT =====
+    rejectReason: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    }
+
+  }, {
+    tableName: "requests"
+  });
+
+  return Request;
+};

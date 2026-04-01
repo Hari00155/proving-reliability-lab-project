@@ -39,5 +39,6 @@ Object.keys(db).forEach(modelName => {
 
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
-
+db.DailyUpdate = require("./dailyUpdate")(sequelize, Sequelize);
+db.Report = require("./report")(sequelize, Sequelize);
 module.exports = db;

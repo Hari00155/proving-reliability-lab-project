@@ -1,27 +1,29 @@
 const { Op } = require("sequelize");
-const Request = require("../models/request");
+const { Request } = require("../models");
 
 // ================= CREATE =================
 exports.createRequest = async (req, res) => {
   try {
-    const today = new Date().toLocaleDateString("en-CA");
+    const today = new Date().toISOString().split("T")[0];
 
-    const count = await Request.count().catch(() => 0);
+    const count = await Request.count();
     const year = new Date().getFullYear();
 
     const requestNo = `REQ-${year}-${String(count + 1).padStart(4, "0")}`;
 
     const newRequest = await Request.create({
       requestNo,
+
       userName: req.body.userName || "User",
       deptId: req.body.deptId || "D001",
-
       date: req.body.date || today,
+
       partNo: req.body.partNo || "",
       description: req.body.description || "",
       platformCode: req.body.platformCode || "",
       productCode: req.body.productCode || "",
       customer: req.body.customer || "",
+
       samples: req.body.samples || 0,
       testType: req.body.testType || "",
       category: req.body.category || "",
@@ -31,8 +33,17 @@ exports.createRequest = async (req, res) => {
       spec: req.body.spec || "",
       testName: req.body.testName || "",
 
-      filePath: req.file ? req.file.filename : null,
-      status: "Pending"
+      // ✅ FIX: ALWAYS FULL URL
+      attachment: req.file
+        ? `http://localhost:5000/uploads/${req.file.filename}`
+        : null,
+
+      attachmentName: req.file ? req.file.originalname : null,
+
+      status: "Pending",
+      allocationPlNo: null,
+      rejectReason: null,
+      responsibility: null
     });
 
     res.status(201).json(newRequest);
@@ -63,45 +74,50 @@ exports.updateRequest = async (req, res) => {
   try {
     const { id } = req.params;
 
-    let updateData = { ...req.body };
-
-    if (req.file) {
-      updateData.filePath = req.file.filename;
-    }
-
     const existing = await Request.findByPk(id);
-
     if (!existing) {
       return res.status(404).json({ error: "Request not found" });
     }
 
-    // ================= 🔥 PL NUMBER FIX =================
-    if (
-      updateData.status === "Approved" &&
-      !existing.allocationPlNo
-    ) {
-      const year = new Date().getFullYear();
+    let updateData = { ...req.body };
 
-      // ✅ GET LAST PL NUMBER
-      const last = await Request.findOne({
-        where: {
-          allocationPlNo: { [Op.ne]: null }
-        },
-        order: [["allocationPlNo", "DESC"]]
-      });
-
-      let nextNumber = 1;
-
-      if (last && last.allocationPlNo) {
-        const lastNumber = parseInt(last.allocationPlNo.split("-")[2]);
-        nextNumber = lastNumber + 1;
-      }
-
-      updateData.allocationPlNo =
-        `PL-${year}-${String(nextNumber).padStart(4, "0")}`;
+    // ================= FILE UPDATE =================
+    if (req.file) {
+      updateData.attachment = `http://localhost:5000/uploads/${req.file.filename}`;
+      updateData.attachmentName = req.file.originalname;
     }
 
-    await Request.update(updateData, { where: { id } });
+    // ================= REJECT =================
+    if (updateData.status === "Rejected") {
+      updateData.rejectReason = req.body.rejectReason || "No reason provided";
+    }
+
+    // ================= ALLOCATE =================
+    if (updateData.status === "Allocated") {
+
+      // 🔥 IMPORTANT: GENERATE ONLY ONCE
+      if (!existing.allocationPlNo) {
+
+        const all = await Request.findAll({
+          where: {
+            allocationPlNo: { [Op.ne]: null }
+          }
+        });
+
+        const numbers = all
+          .map(r => parseInt(r.allocationPlNo))
+          .filter(n => !isNaN(n));
+
+        const max = numbers.length ? Math.max(...numbers) : 0;
+
+        updateData.allocationPlNo = String(max + 1).padStart(5, "0");
+      }
+
+      updateData.responsibility = "Admin";
+    }
+
+    // ✅ UPDATE USING INSTANCE (SAFE)
+    await existing.update(updateData);
 
     res.json({ message: "Updated Successfully" });
 
@@ -114,7 +130,13 @@ exports.updateRequest = async (req, res) => {
 // ================= DELETE =================
 exports.deleteRequest = async (req, res) => {
   try {
-    await Request.destroy({ where: { id: req.params.id } });
+    const deleted = await Request.destroy({
+      where: { id: req.params.id }
+    });
+
+    if (!deleted) {
+      return res.status(404).json({ error: "Request not found" });
+    }
 
     res.json({ message: "Deleted Successfully" });
 
@@ -127,7 +149,7 @@ exports.deleteRequest = async (req, res) => {
 // ================= TODAY =================
 exports.getTodayRequests = async (req, res) => {
   try {
-    const today = new Date().toLocaleDateString("en-CA");
+    const today = new Date().toISOString().split("T")[0];
 
     const data = await Request.findAll({
       where: { date: today },
@@ -135,7 +157,9 @@ exports.getTodayRequests = async (req, res) => {
     });
 
     res.json(data);
+
   } catch (err) {
+    console.error("TODAY ERROR:", err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -143,7 +167,7 @@ exports.getTodayRequests = async (req, res) => {
 // ================= ARCHIVE =================
 exports.getArchiveRequests = async (req, res) => {
   try {
-    const today = new Date().toLocaleDateString("en-CA");
+    const today = new Date().toISOString().split("T")[0];
 
     const data = await Request.findAll({
       where: {
@@ -153,7 +177,9 @@ exports.getArchiveRequests = async (req, res) => {
     });
 
     res.json(data);
+
   } catch (err) {
+    console.error("ARCHIVE ERROR:", err);
     res.status(500).json({ error: err.message });
   }
 };
