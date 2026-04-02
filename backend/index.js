@@ -5,7 +5,10 @@ const fs = require("fs");
 require("dotenv").config();
 
 const db = require("./config/database");
+
 const requestRoutes = require("./routes/requestRoutes");
+const dailyRoutes = require("./routes/dailyRoutes");
+const reportRoutes = require("./routes/reportRoutes");
 
 const app = express();
 
@@ -24,7 +27,7 @@ app.use(cors({
   allowedHeaders: ["Content-Type"]
 }));
 
-// 🔥 IMPORTANT (for large file/base64)
+// 🔥 IMPORTANT (must come before routes)
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
@@ -33,6 +36,8 @@ app.use("/uploads", express.static(uploadPath));
 
 // ================= ROUTES =================
 app.use("/api/requests", requestRoutes);
+app.use("/api/dailyupdates", dailyRoutes);
+app.use("/api/reports", reportRoutes);
 
 // ================= HEALTH CHECK =================
 app.get("/", (req, res) => {
@@ -42,7 +47,6 @@ app.get("/", (req, res) => {
 // ================= ERROR HANDLER =================
 app.use((err, req, res, next) => {
   console.error("🔥 ERROR:", err);
-
   res.status(500).json({
     error: err.message || "Internal Server Error"
   });
@@ -57,7 +61,7 @@ async function startServer() {
     await db.authenticate();
     console.log("✅ Database Connected");
 
-    // ✅ SYNC TABLES
+    // 🔥 FIX: DO NOT USE force:true (it deletes data)
     await db.sync({ alter: true });
     console.log("✅ Tables Synced");
 

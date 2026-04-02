@@ -199,7 +199,7 @@ export default {
         })
 
         if (this.form.file) {
-          formData.append("file", this.form.file)
+          formData.append("attachment", this.form.file)
         }
 
         const res = await axios.post(

@@ -7,17 +7,18 @@ module.exports = (sequelize, DataTypes) => {
     platformCode: DataTypes.STRING,
     productCode: DataTypes.STRING,
     customer: DataTypes.STRING,
-    samples: DataTypes.INTEGER,
+    samples: DataTypes.STRING,
     testType: DataTypes.STRING,
     category: DataTypes.STRING,
     testDetails: DataTypes.TEXT,
     special: DataTypes.TEXT,
     criteria: DataTypes.TEXT,
-    spec: DataTypes.STRING,
+    spec: DataTypes.TEXT,
     testName: DataTypes.STRING,
     result: DataTypes.STRING,
     reportedBy: DataTypes.STRING,
     approvedBy: DataTypes.STRING,
-    postFile: DataTypes.STRING
+    signatureReported: DataTypes.STRING,
+    signatureApproved: DataTypes.STRING
   });
 };

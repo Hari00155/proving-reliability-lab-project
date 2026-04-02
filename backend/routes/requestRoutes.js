@@ -1,13 +1,14 @@
 const express = require("express");
 const router = express.Router();
 
-const requestController = require("../controllers/request");
+// ✅ FIXED (MATCH YOUR FILE NAME)
+const requestController = require("../controllers/requestController");
 
 // ✅ MULTER (FILE UPLOAD)
 const multer = require("multer");
 const path = require("path");
 
-// STORAGE CONFIG
+// ================= STORAGE CONFIG =================
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "uploads/");

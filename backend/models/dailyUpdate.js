@@ -1,14 +1,59 @@
 module.exports = (sequelize, DataTypes) => {
   return sequelize.define("DailyUpdate", {
-    plNo: DataTypes.STRING,
-    reqNo: DataTypes.STRING,
-    equipmentNo: DataTypes.STRING,
-    updateDate: DataTypes.DATE,
-    targetCycles: DataTypes.INTEGER,
-    currentReading: DataTypes.INTEGER,
-    initialReading: DataTypes.INTEGER,
-    yetToCover: DataTypes.INTEGER,
-    remarks: DataTypes.TEXT,
-    photo: DataTypes.STRING
+
+    // 🔹 LINK WITH REQUEST
+    allocationPlNo: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+
+    // 🔹 EQUIPMENT
+    equipmentNo: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+
+    // 🔹 DATE
+    updateDate: {
+      type: DataTypes.DATEONLY,
+      allowNull: true
+    },
+
+    // 🔹 CYCLES
+    targetCycles: {
+      type: DataTypes.FLOAT,
+      defaultValue: 0
+    },
+
+    currentReading: {
+      type: DataTypes.FLOAT,
+      defaultValue: 0
+    },
+
+    initialReading: {
+      type: DataTypes.FLOAT,
+      defaultValue: 0
+    },
+
+    // 🔥 IMPORTANT (AUTO CALCULATED)
+    yetToCover: {
+      type: DataTypes.FLOAT,
+      defaultValue: 0
+    },
+
+    // 🔹 REMARKS
+    remarks: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
+
+    // 🔹 IMAGE
+    photo: {
+      type: DataTypes.STRING,
+      allowNull: true
+    }
+
+  }, {
+    timestamps: true
   });
 };
