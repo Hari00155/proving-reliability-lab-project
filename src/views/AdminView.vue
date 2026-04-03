@@ -164,7 +164,7 @@ export default {
 /* ✅ Active page — white pill with purple text */
 .sidebar-btn-active {
   background: #ffffff !important;
-  color: #7c3aed !important;
+  color: #154556 !important;
   font-weight: 700;
 }
 </style>

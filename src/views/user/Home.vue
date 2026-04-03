@@ -51,6 +51,7 @@
                 <span v-else>-</span>
               </td>
 
+              <!-- ✅ STATUS COLOR FIX -->
               <td>
                 <span :class="statusClass(req.status)">
                   {{ req.status }}
@@ -79,7 +80,7 @@
 
         <div class="details-grid">
 
-          <p><b>Date:</b> {{ selectedRequest.date }}</p>
+          <p><b>Date:</b> {{ formatDate(selectedRequest.date) }}</p>
           <p><b>Part No:</b> {{ selectedRequest.partNo }}</p>
           <p><b>Description:</b> {{ selectedRequest.description }}</p>
           <p><b>Platform Code:</b> {{ selectedRequest.platformCode }}</p>
@@ -175,12 +176,15 @@ export default {
       return new Date(date).toLocaleDateString();
     },
 
+    // ✅ FINAL STATUS COLOR LOGIC
     statusClass(status) {
       return {
         badge: true,
+
         "bg-warning text-dark": status === "Pending",
-        "bg-success": status === "Approved",
-        "bg-danger": status === "Rejected"
+        "bg-success": status === "Accepted",
+        "bg-danger": status === "Rejected",
+        "bg-primary": status === "Allocated"
       };
     }
   }
@@ -197,6 +201,13 @@ export default {
 .custom-table th {
   background: #2c3e50;
   color: white;
+}
+
+/* BADGE IMPROVEMENT */
+.badge {
+  padding: 6px 12px;
+  font-size: 13px;
+  border-radius: 20px;
 }
 
 /* MODAL */
@@ -222,7 +233,7 @@ export default {
   border-radius: 10px;
 }
 
-/* GRID */
+/* DETAILS */
 .details-grid p {
   margin: 5px 0;
   font-size: 14px;

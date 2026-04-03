@@ -34,63 +34,124 @@
       </tbody>
     </table>
 
-    <!-- MONITORING -->
+    <!-- ================= MONITORING ================= -->
     <div v-if="monitoring" class="modal-overlay">
       <div class="modal-box">
 
         <h4>📘 Monitoring Sheet Entry</h4>
 
+        <label>PL No</label>
         <input v-model="monitoring.plNo" class="form-control mb-2" readonly/>
+
+        <label>Equipment Name</label>
+        <input v-model="monitoring.equipmentName" class="form-control mb-2"/>
+
+        <label>Equipment No</label>
         <input v-model="monitoring.equipmentNo" class="form-control mb-2"/>
+
+        <label>Date</label>
         <input type="date" v-model="monitoring.date" class="form-control mb-2"/>
 
+        <label>Target Cycle</label>
         <input v-model="monitoring.targetCycle" class="form-control mb-2"/>
+
+        <label>Current Reading</label>
         <input v-model="monitoring.currentReading" class="form-control mb-2"/>
+
+        <label>Initial Reading</label>
         <input v-model="monitoring.initialReading" class="form-control mb-2"/>
 
+        <label>Yet To Cover</label>
         <input :value="yetToCover" class="form-control mb-2" readonly/>
 
+        <label>Purpose / Remarks</label>
         <textarea v-model="monitoring.remarks" class="form-control mb-2"></textarea>
 
-        <input type="file" @change="handlePhoto" class="form-control mb-2"/>
-
-        <button class="btn btn-info" @click="printSheet('monitoring')">🖨 Print</button>
+        <button class="btn btn-info" @click="printSheet('monitoring')">🖨 Print Data Sheet</button>
         <button class="btn btn-success" @click="submitDaily">Submit</button>
         <button class="btn btn-secondary" @click="monitoring=null">Close</button>
 
       </div>
     </div>
 
-    <!-- REPORT -->
+    <!-- ================= REPORT ================= -->
     <div v-if="report" class="modal-overlay">
       <div class="modal-box large">
 
         <h4>📄 Report Preparation</h4>
 
+        <!-- REQUEST DETAILS -->
+        <label>PL No</label>
         <input v-model="report.plNo" class="form-control mb-2" readonly/>
+
+        <label>Request No</label>
         <input v-model="report.reqNo" class="form-control mb-2" readonly/>
+
+        <label>Part No</label>
         <input v-model="report.partNo" class="form-control mb-2" readonly/>
 
-        <input v-model="report.product" class="form-control mb-2"/>
-        <input v-model="report.testType" class="form-control mb-2"/>
-        <input v-model="report.category" class="form-control mb-2"/>
+        <label>Description</label>
+        <input v-model="report.description" class="form-control mb-2" readonly/>
 
-        <textarea v-model="report.testDetails" class="form-control mb-2"></textarea>
+        <label>Platform Code</label>
+        <input v-model="report.platformCode" class="form-control mb-2" readonly/>
+
+        <label>Product Code</label>
+        <input v-model="report.productCode" class="form-control mb-2" readonly/>
+
+        <label>Customer</label>
+        <input v-model="report.customer" class="form-control mb-2" readonly/>
+
+        <label>Samples</label>
+        <input v-model="report.samples" class="form-control mb-2" readonly/>
+
+        <label>Test Type</label>
+        <input v-model="report.testType" class="form-control mb-2" readonly/>
+
+        <label>Category</label>
+        <input v-model="report.category" class="form-control mb-2" readonly/>
+
+        <label>Test Details</label>
+        <textarea v-model="report.testDetails" class="form-control mb-2" readonly></textarea>
+
+        <label>Special</label>
+        <textarea v-model="report.special" class="form-control mb-2" readonly></textarea>
+
+        <label>Spec</label>
+        <input v-model="report.spec" class="form-control mb-2" readonly/>
+
+        <label>Test Name</label>
+        <input v-model="report.testName" class="form-control mb-2" readonly/>
+
+        <!-- REPORT ENTRY -->
+        <label>Acceptance Criteria</label>
         <textarea v-model="report.criteria" class="form-control mb-2"></textarea>
+
+        <label>Observation</label>
         <textarea v-model="report.observation" class="form-control mb-2"></textarea>
+
+        <label>Conclusion</label>
         <textarea v-model="report.conclusion" class="form-control mb-2"></textarea>
 
+        <label>Result</label>
         <select v-model="report.result" class="form-control mb-2">
           <option>Passed</option>
           <option>Failed</option>
           <option>Completed</option>
         </select>
 
+        <!-- SIGNATURE -->
+        <label>Reported By</label>
         <input value="Admin" class="form-control mb-2" readonly/>
+
+        <label>Reported Signature</label>
+        <input type="file" @change="e=>signReported=e.target.files[0]" class="form-control mb-2"/>
+
+        <label>Approved By</label>
         <input value="Superadmin" class="form-control mb-2" readonly/>
 
-        <input type="file" @change="handleSign1" class="form-control mb-2"/>
-        <input type="file" @change="handleSign2" class="form-control mb-2"/>
+        <label>Approved Signature</label>
+        <input type="file" @change="e=>signApproved=e.target.files[0]" class="form-control mb-2"/>
 
         <button class="btn btn-primary" @click="printSheet('report')">🖨 Print</button>
         <button class="btn btn-success" @click="submitReport">Submit</button>
@@ -111,9 +172,8 @@ export default {
       requests:[],
       monitoring:null,
       report:null,
-      photo:null,
-      sign1:null,
-      sign2:null
+      signReported:null,
+      signApproved:null
     }
   },
 
@@ -138,11 +198,18 @@ export default {
     openMonitoring(r){
       this.monitoring = {
         plNo:r.allocationPlNo,
+        equipmentName:r.equipmentName || "TEST RIG",
         equipmentNo:r.testRig || "",
+        requestNo:r.requestNo,
+        partNo:r.partNo,
+        customer:r.customer,
+        testType:r.testType,
+        samples:r.samples,
+        testDetails:r.testDetails,
         date:"",
-        targetCycle:r.targetCycle || "",
+        targetCycle:"",
         currentReading:"",
-        initialReading:r.initialReading || "",
+        initialReading:"",
         remarks:""
       };
     },
@@ -152,10 +219,17 @@ export default {
         plNo:r.allocationPlNo,
         reqNo:r.requestNo,
         partNo:r.partNo,
-        product:r.product || "",
-        testType:r.testType || "",
-        category:r.category || "",
-        testDetails:r.testDetails || "",
+        description:r.description,
+        platformCode:r.platformCode,
+        productCode:r.productCode,
+        customer:r.customer,
+        samples:r.samples,
+        testType:r.testType,
+        category:r.category,
+        testDetails:r.testDetails,
+        special:r.special,
+        spec:r.spec,
+        testName:r.testName,
         criteria:"",
         observation:"",
         conclusion:"",
@@ -163,110 +237,79 @@ export default {
       };
     },
 
-    handlePhoto(e){ this.photo = e.target.files[0]; },
-    handleSign1(e){ this.sign1 = e.target.files[0]; },
-    handleSign2(e){ this.sign2 = e.target.files[0]; },
-
     async submitDaily(){
-      const form = new FormData();
-      Object.keys(this.monitoring).forEach(k=>{
-        form.append(k,this.monitoring[k]);
-      });
-      form.append("photo",this.photo);
-
-      await axios.post("http://localhost:5000/api/dailyupdates",form);
+      await axios.post("http://localhost:5000/api/dailyupdates",this.monitoring);
       alert("Saved ✅");
       this.monitoring=null;
     },
 
     async submitReport(){
       const form = new FormData();
+
       Object.keys(this.report).forEach(k=>{
         form.append(k,this.report[k]);
       });
 
-      form.append("signatureReported",this.sign1);
-      form.append("signatureApproved",this.sign2);
+      form.append("signatureReported", this.signReported);
+      form.append("signatureApproved", this.signApproved);
 
-      await axios.post("http://localhost:5000/api/reports",form);
+      await axios.post("http://localhost:5000/api/reports", form);
+
       alert("Report Saved ✅");
       this.report=null;
     },
 
-    // ✅ FINAL PRINT FIX
     printSheet(type){
 
-      let data = type === "report" ? this.report : this.monitoring;
+      if(type === "report"){
+        let d = this.report;
 
-      const sign1URL = this.sign1 ? URL.createObjectURL(this.sign1) : "";
-      const sign2URL = this.sign2 ? URL.createObjectURL(this.sign2) : "";
+        const sign1 = this.signReported ? URL.createObjectURL(this.signReported) : "";
+        const sign2 = this.signApproved ? URL.createObjectURL(this.signApproved) : "";
 
-      const html = `
-      <html>
-      <head>
-        <style>
-          body{font-family:Arial;padding:30px;}
-          h2{text-align:center;}
-          table{width:100%;border-collapse:collapse;margin-top:20px;}
-          td{border:1px solid #000;padding:8px;}
-          .label{font-weight:bold;background:#f2f2f2;width:30%;}
-        </style>
-      </head>
-      <body>
+        const html = `
+        <html>
+        <body style="font-family:Arial;padding:20px;">
 
-      <h2>${type==="report"?"TEST REPORT":"MONITORING SHEET"}</h2>
+        <h2 style="text-align:center;">TEST REPORT</h2>
 
-      <table>
-      ${
-        type==="report"
-        ?`
-        <tr><td class="label">PL No</td><td>${data.plNo}</td></tr>
-        <tr><td class="label">Request No</td><td>${data.reqNo}</td></tr>
-        <tr><td class="label">Part No</td><td>${data.partNo}</td></tr>
-        <tr><td class="label">Product</td><td>${data.product}</td></tr>
-        <tr><td class="label">Test Type</td><td>${data.testType}</td></tr>
-        <tr><td class="label">Category</td><td>${data.category}</td></tr>
-        <tr><td class="label">Test Details</td><td>${data.testDetails}</td></tr>
-        <tr><td class="label">Acceptance Criteria</td><td>${data.criteria}</td></tr>
-        <tr><td class="label">Observation</td><td>${data.observation}</td></tr>
-        <tr><td class="label">Conclusion</td><td>${data.conclusion}</td></tr>
-        <tr><td class="label">Result</td><td>${data.result}</td></tr>
-        `
-        :
-        `
-        <tr><td class="label">PL No</td><td>${data.plNo}</td></tr>
-        <tr><td class="label">Equipment</td><td>${data.equipmentNo}</td></tr>
-        <tr><td class="label">Date</td><td>${data.date}</td></tr>
-        <tr><td class="label">Target Cycle</td><td>${data.targetCycle}</td></tr>
-        <tr><td class="label">Current Reading</td><td>${data.currentReading}</td></tr>
-        <tr><td class="label">Initial Reading</td><td>${data.initialReading}</td></tr>
-        <tr><td class="label">Yet To Cover</td><td>${this.yetToCover}</td></tr>
-        <tr><td class="label">Remarks</td><td>${data.remarks}</td></tr>
-        `
+        <table border="1" width="100%" cellspacing="0" cellpadding="5">
+          <tr><td><b>PL No</b></td><td>${d.plNo}</td></tr>
+          <tr><td><b>Request No</b></td><td>${d.reqNo}</td></tr>
+          <tr><td><b>Part No</b></td><td>${d.partNo}</td></tr>
+          <tr><td><b>Description</b></td><td>${d.description}</td></tr>
+          <tr><td><b>Customer</b></td><td>${d.customer}</td></tr>
+          <tr><td><b>Test Details</b></td><td>${d.testDetails}</td></tr>
+          <tr><td><b>Acceptance Criteria</b></td><td>${d.criteria}</td></tr>
+          <tr><td><b>Observation</b></td><td>${d.observation}</td></tr>
+          <tr><td><b>Conclusion</b></td><td>${d.conclusion}</td></tr>
+          <tr><td><b>Result</b></td><td>${d.result}</td></tr>
+        </table>
+
+        <br><br>
+
+        <table width="100%">
+          <tr>
+            <td align="center">
+              ${sign1 ? `<img src="${sign1}" height="60"/>` : ""}
+              <br>Reported By<br>Admin
+            </td>
+            <td align="center">
+              ${sign2 ? `<img src="${sign2}" height="60"/>` : ""}
+              <br>Approved By<br>Superadmin
+            </td>
+          </tr>
+        </table>
+
+        </body>
+        </html>
+        `;
+
+        const win = window.open("", "", "width=900,height=700");
+        win.document.write(html);
+        win.document.close();
+        win.print();
       }
-      </table>
-
-      <table style="margin-top:50px;">
-        <tr>
-          <td style="text-align:center;">
-            ${sign1URL ? `<img src="${sign1URL}" height="60"/>` : ""}
-            <br/>Reported By<br/>Admin
-          </td>
-          <td style="text-align:center;">
-            ${sign2URL ? `<img src="${sign2URL}" height="60"/>` : ""}
-            <br/>Approved By<br/>Superadmin
-          </td>
-        </tr>
-      </table>
-
-      </body>
-      </html>
-      `;
-
-      const win = window.open("", "", "width=900,height=700");
-      win.document.write(html);
-      win.document.close();
-      win.print();
     }
 
   }
