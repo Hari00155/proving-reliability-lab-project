@@ -8,8 +8,13 @@ exports.createReport = async (req, res) => {
 
     const files = req.files || {};
 
-    // ✅ SAFE DATA BUILD
+    // ✅ ADD REPORT NUMBER (FROM ROUTE)
+    const reportNo = req.body.reportNo || null;
+
+    // ✅ SAFE DATA BUILD (NO BREAK)
     const data = {
+      reportNo, // ✅ NEW FIELD (IMPORTANT)
+
       plNo: req.body.plNo,
       reqNo: req.body.reqNo,
       partNo: req.body.partNo,
@@ -53,8 +58,10 @@ exports.createReport = async (req, res) => {
     // ✅ SAVE
     const saved = await Report.create(data);
 
+    // ✅ RETURN REPORT NO ALSO (VERY IMPORTANT)
     res.json({
       message: "✅ Report Saved",
+      reportNo: saved.reportNo, // 🔥 send to frontend
       data: saved
     });
 
