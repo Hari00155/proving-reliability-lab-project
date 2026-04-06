@@ -21,13 +21,8 @@ if (!fs.existsSync(uploadPath)) {
 }
 
 // ================= MIDDLEWARE =================
-app.use(cors({
-  origin: "*",
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type"]
-}));
+app.use(cors());
 
-// 🔥 IMPORTANT (must come before routes)
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
@@ -53,7 +48,7 @@ app.use((err, req, res, next) => {
 });
 
 // ================= SERVER START =================
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 10000; // 🔥 IMPORTANT (Render uses PORT)
 
 async function startServer() {
   try {
@@ -61,13 +56,12 @@ async function startServer() {
     await db.authenticate();
     console.log("✅ Database Connected");
 
-    // 🔥 FIX: DO NOT USE force:true (it deletes data)
     await db.sync({ alter: true });
     console.log("✅ Tables Synced");
 
     // ✅ START SERVER
-    app.listen(PORT, () => {
-      console.log(`🚀 Server running on http://localhost:${PORT}`);
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`🚀 Server running on port ${PORT}`);
     });
 
   } catch (error) {
