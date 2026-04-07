@@ -8,16 +8,20 @@ exports.createReport = async (req, res) => {
 
     const files = req.files || {};
 
-    // ✅ ADD REPORT NUMBER (FROM ROUTE)
-    const reportNo = req.body.reportNo || null;
+    // ✅ REPORT NUMBER FROM ROUTE (IMPORTANT)
+    if (!req.body.reportNo) {
+      return res.status(400).json({
+        error: "Report Number missing from backend route"
+      });
+    }
 
-    // ✅ SAFE DATA BUILD (NO BREAK)
+    // ✅ SAFE DATA BUILD
     const data = {
-      reportNo, // ✅ NEW FIELD (IMPORTANT)
+      reportNo: req.body.reportNo,
 
-      plNo: req.body.plNo,
-      reqNo: req.body.reqNo,
-      partNo: req.body.partNo,
+      plNo: req.body.plNo || "",
+      reqNo: req.body.reqNo || "",
+      partNo: req.body.partNo || "",
 
       description: req.body.description || "",
       platformCode: req.body.platformCode || "",
@@ -34,6 +38,9 @@ exports.createReport = async (req, res) => {
 
       spec: req.body.spec || "",
       testName: req.body.testName || "",
+
+      observation: req.body.observation || "",   // ✅ ADDED
+      conclusion: req.body.conclusion || "",     // ✅ ADDED
 
       result: req.body.result || "",
 
@@ -55,20 +62,25 @@ exports.createReport = async (req, res) => {
         : null
     };
 
-    // ✅ SAVE
+    // 🔍 DEBUG FINAL DATA
+    console.log("FINAL DATA:", data);
+
+    // ✅ SAVE TO DB
     const saved = await Report.create(data);
 
-    // ✅ RETURN REPORT NO ALSO (VERY IMPORTANT)
-    res.json({
-      message: "✅ Report Saved",
-      reportNo: saved.reportNo, // 🔥 send to frontend
+    // ✅ RESPONSE (IMPORTANT FOR FRONTEND)
+    return res.json({
+      success: true,
+      message: "✅ Report Saved Successfully",
+      reportNo: saved.reportNo,
       data: saved
     });
 
   } catch (err) {
     console.error("❌ REPORT ERROR:", err);
 
-    res.status(500).json({
+    return res.status(500).json({
+      success: false,
       error: err.message || "Server Error"
     });
   }

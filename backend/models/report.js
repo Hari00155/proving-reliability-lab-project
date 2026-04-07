@@ -1,10 +1,11 @@
 module.exports = (sequelize, DataTypes) => {
   return sequelize.define("Report", {
 
-    // ✅ NEW FIELD (AUTO REPORT NUMBER)
+    // ✅ AUTO REPORT NUMBER
     reportNo: {
       type: DataTypes.STRING,
-      allowNull: true
+      allowNull: false,
+      unique: true   // 🔥 prevent duplicate
     },
 
     plNo: {
@@ -82,6 +83,17 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true
     },
 
+    // 🔥 ADDED (YOU WERE USING IN FRONTEND)
+    observation: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
+
+    conclusion: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
+
     result: {
       type: DataTypes.STRING,
       allowNull: true
@@ -108,6 +120,6 @@ module.exports = (sequelize, DataTypes) => {
     }
 
   }, {
-    timestamps: true // ✅ optional but recommended
+    timestamps: true
   });
 };

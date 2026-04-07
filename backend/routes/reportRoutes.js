@@ -28,15 +28,32 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-// ================= AUTO REPORT NUMBER =================
+// ================= DB =================
 const db = require("../config/database");
 
+// ================= AUTO REPORT NUMBER (FIXED) =================
 async function generateReportNo() {
-  const [rows] = await db.query("SELECT COUNT(*) as count FROM reports");
-  const count = rows[0].count + 1;
+  try {
+    const [rows] = await db.query(
+      "SELECT reportNo FROM reports ORDER BY id DESC LIMIT 1"
+    );
 
-  const year = new Date().getFullYear();
-  return `RPT-${year}-${String(count).padStart(4, "0")}`;
+    let nextNumber = 1;
+
+    if (rows.length > 0 && rows[0].reportNo) {
+      const lastNo = rows[0].reportNo;
+      const parts = lastNo.split("-");
+      const lastCount = parseInt(parts[2]) || 0;
+      nextNumber = lastCount + 1;
+    }
+
+    const year = new Date().getFullYear();
+    return `RPT-${year}-${String(nextNumber).padStart(4, "0")}`;
+
+  } catch (err) {
+    console.error("Error generating reportNo:", err);
+    throw err;
+  }
 }
 
 // ================= TEST ROUTE =================
@@ -54,21 +71,20 @@ router.post(
   ]),
   async (req, res, next) => {
     try {
-      // 🔍 DEBUG
       console.log("BODY:", req.body);
       console.log("FILES:", req.files);
 
-      // ✅ ADD AUTO REPORT NUMBER (NO BREAK)
+      // ✅ GENERATE REPORT NUMBER
       const reportNo = await generateReportNo();
       req.body.reportNo = reportNo;
 
-      // ✅ PASS TO CONTROLLER (UNCHANGED FLOW)
+      // ✅ SAVE USING CONTROLLER
       await controller.createReport(req, res);
 
-      // ✅ SEND BACK REPORT NO (IMPORTANT FOR FRONTEND)
-      // If controller already sends response → skip this
+      // ✅ ENSURE FRONTEND GETS REPORT NO
       if (!res.headersSent) {
-        res.json({
+        return res.json({
+          success: true,
           message: "Report Created Successfully",
           reportNo
         });
@@ -76,7 +92,11 @@ router.post(
 
     } catch (err) {
       console.error("ROUTE ERROR:", err);
-      next(err);
+      return res.status(500).json({
+        success: false,
+        message: "Error creating report",
+        error: err.message
+      });
     }
   }
 );
