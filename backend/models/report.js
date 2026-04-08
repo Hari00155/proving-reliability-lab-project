@@ -5,9 +5,10 @@ module.exports = (sequelize, DataTypes) => {
     reportNo: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true   // 🔥 prevent duplicate
+      unique: true
     },
 
+    // ── Auto-filled from Request ──────────────────────────
     plNo: {
       type: DataTypes.STRING,
       allowNull: true
@@ -43,6 +44,11 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true
     },
 
+    component: {                        // 🔥 ADDED — used in frontend report form
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+
     samples: {
       type: DataTypes.STRING,
       allowNull: true
@@ -54,7 +60,7 @@ module.exports = (sequelize, DataTypes) => {
     },
 
     category: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING,          // Purpose of the Test
       allowNull: true
     },
 
@@ -68,22 +74,58 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true
     },
 
-    criteria: {
-      type: DataTypes.TEXT,
-      allowNull: true
-    },
-
-    spec: {
-      type: DataTypes.TEXT,
-      allowNull: true
-    },
-
     testName: {
       type: DataTypes.STRING,
       allowNull: true
     },
 
-    // 🔥 ADDED (YOU WERE USING IN FRONTEND)
+    spec: {
+      type: DataTypes.TEXT,            // Test Equipment (auto from monitoring equipmentName)
+      allowNull: true
+    },
+
+    date: {                            // 🔥 ADDED — report date (auto-filled)
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+
+    // ── Auto-filled from Monitoring ───────────────────────
+    equipmentName: {                   // 🔥 ADDED
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+
+    equipmentNo: {                     // 🔥 ADDED
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+
+    initialReading: {                  // 🔥 ADDED — Initial Counter
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+
+    currentReading: {                  // 🔥 ADDED — Current Counter
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+
+    targetCycle: {                     // 🔥 ADDED — Target Cycle
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+
+    reportBalance: {                   // 🔥 ADDED — Balance / Yet to Cover (computed)
+      type: DataTypes.FLOAT,
+      allowNull: true
+    },
+
+    // ── Manual Entry ──────────────────────────────────────
+    criteria: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
+
     observation: {
       type: DataTypes.TEXT,
       allowNull: true
@@ -95,7 +137,7 @@ module.exports = (sequelize, DataTypes) => {
     },
 
     result: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING,          // 'Passed' | 'Failed' | 'Completed'
       allowNull: true
     },
 
@@ -109,15 +151,45 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: "Superadmin"
     },
 
-    signatureReported: {
+    requestedBy: {                     // 🔥 ADDED — auto from request userName
       type: DataTypes.STRING,
       allowNull: true
     },
 
-    signatureApproved: {
+    // ── Signatures ────────────────────────────────────────
+    signatureReported: {               // base64 image (reported by signature)
+      type: DataTypes.TEXT,            // 🔥 changed STRING → TEXT (base64 is long)
+      allowNull: true
+    },
+
+    signatureApproved: {               // base64 image (approved by signature)
+      type: DataTypes.TEXT,            // 🔥 changed STRING → TEXT (base64 is long)
+      allowNull: true
+    },
+
+    // ── Attachments ───────────────────────────────────────
+    postDataBase64: {                  // 🔥 ADDED — base64 of uploaded PDF/Excel
+      type: DataTypes.TEXT('long'),    // LONGTEXT — files can be several MB
+      allowNull: true
+    },
+
+    postDataName: {                    // 🔥 ADDED — original filename
       type: DataTypes.STRING,
       allowNull: true
-    }
+    },
+
+    failurePhotos: {                   // 🔥 ADDED — JSON array of base64 image strings
+      type: DataTypes.TEXT('long'),    // stored as JSON.stringify([...])
+      allowNull: true,
+      get() {
+        const val = this.getDataValue('failurePhotos');
+        try { return val ? JSON.parse(val) : []; }
+        catch { return []; }
+      },
+      set(val) {
+        this.setDataValue('failurePhotos', JSON.stringify(val || []));
+      }
+    },
 
   }, {
     timestamps: true

@@ -11,7 +11,7 @@ const fs = require("fs");
 const uploadDir = "uploads/";
 
 if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir);
+  fs.mkdirSync(uploadDir, { recursive: true });
   console.log("📁 uploads folder created");
 }
 
@@ -33,15 +33,71 @@ router.get("/", (req, res) => {
   res.json({ message: "✅ Daily Update API Working" });
 });
 
+// ================= GET ALL DAILY UPDATES =================
+router.get("/all", async (req, res, next) => {
+  try {
+    await controller.getDailyUpdates(req, res);
+  } catch (err) {
+    console.error("ROUTE ERROR:", err);
+    next(err);
+  }
+});
+
+// ================= GET BY ID =================
+router.get("/:id", async (req, res, next) => {
+  try {
+    await controller.getDailyUpdateById(req, res);
+  } catch (err) {
+    console.error("ROUTE ERROR:", err);
+    next(err);
+  }
+});
+
+// ================= GET BY REQUEST NO =================
+// 🔥 ADDED — used by frontend edit mode lookup
+router.get("/by-request/:requestNo", async (req, res, next) => {
+  try {
+    await controller.getDailyUpdateByRequestNo(req, res);
+  } catch (err) {
+    console.error("ROUTE ERROR:", err);
+    next(err);
+  }
+});
+
 // ================= CREATE DAILY UPDATE =================
 router.post("/", upload.single("photo"), async (req, res, next) => {
   try {
-    // Debug logs (helps if error)
-    console.log("BODY:", req.body);
-    console.log("FILE:", req.file);
+    console.log("📥 BODY:", req.body);
+    console.log("📎 FILE:", req.file);
 
     await controller.createDailyUpdate(req, res);
 
+  } catch (err) {
+    console.error("ROUTE ERROR:", err);
+    next(err);
+  }
+});
+
+// ================= UPDATE DAILY UPDATE =================
+// 🔥 ADDED — Edit Monitoring Mode
+router.put("/:id", upload.single("photo"), async (req, res, next) => {
+  try {
+    console.log("📝 UPDATE BODY:", req.body);
+    console.log("📎 UPDATE FILE:", req.file);
+
+    await controller.updateDailyUpdate(req, res);
+
+  } catch (err) {
+    console.error("ROUTE ERROR:", err);
+    next(err);
+  }
+});
+
+// ================= DELETE DAILY UPDATE =================
+// 🔥 ADDED — Delete Monitoring Record
+router.delete("/:id", async (req, res, next) => {
+  try {
+    await controller.deleteDailyUpdate(req, res);
   } catch (err) {
     console.error("ROUTE ERROR:", err);
     next(err);
