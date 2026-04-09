@@ -1,12 +1,10 @@
 const express = require("express");
-const router = express.Router();
+const router  = express.Router();
 
-// ✅ FIXED (MATCH YOUR FILE NAME)
 const requestController = require("../controllers/requestController");
 
-// ✅ MULTER (FILE UPLOAD)
 const multer = require("multer");
-const path = require("path");
+const path   = require("path");
 
 // ================= STORAGE CONFIG =================
 const storage = multer.diskStorage({
@@ -23,22 +21,29 @@ const upload = multer({ storage });
 
 // ================= ROUTES =================
 
-// CREATE (WITH FILE)
-router.post("/", upload.single("attachment"), requestController.createRequest);
+// 🔍 SEARCH — for StatusEnquiry.vue
+// MUST be above GET "/:id" style routes to avoid conflict
+// Usage: GET /api/requests/search?type=requestNo&value=REQ-2024
+//        GET /api/requests/search?type=plNo&value=00001
+//        GET /api/requests/search?type=partNo&value=ABC123
+router.get("/search", requestController.searchRequests);
+
+// TODAY — must also be above any future /:id routes
+router.get("/today", requestController.getTodayRequests);
+
+// ARCHIVE
+router.get("/archive", requestController.getArchiveRequests);
 
 // GET ALL
 router.get("/", requestController.getRequests);
+
+// CREATE (WITH FILE)
+router.post("/", upload.single("attachment"), requestController.createRequest);
 
 // UPDATE (WITH FILE)
 router.put("/:id", upload.single("attachment"), requestController.updateRequest);
 
 // DELETE
 router.delete("/:id", requestController.deleteRequest);
-
-// TODAY
-router.get("/today", requestController.getTodayRequests);
-
-// ARCHIVE
-router.get("/archive", requestController.getArchiveRequests);
 
 module.exports = router;

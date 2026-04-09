@@ -2,7 +2,7 @@
   <div class="d-flex" style="min-height: 100vh;">
 
     <!-- SIDEBAR -->
-    <div class="text-white p-3" style="width: 260px; min-height: 100vh; background-color: #7c3aed;">
+    <div class="text-white p-3" style="width: 260px; min-height: 100vh; background-color: #008080;">
 
       <!-- Avatar & Title -->
       <div class="text-center mb-4">
@@ -43,14 +43,14 @@
         style="background:#fff; border-bottom:1px solid #e5e7eb;">
         <span style="color:#6b7280; font-size:14px;">Proving & Reliability Lab</span>
         <span class="ms-2 px-2 py-1 rounded-pill"
-          style="background:#ede9fe; color:#7c3aed; font-size:11px; font-weight:600;">
+          style="background:#e0f5f5; color:#006666; font-size:11px; font-weight:600;">
           Administrator
         </span>
       </div>
 
       <!-- Page Content -->
       <div class="p-4">
-        <h4 class="mb-1" style="color:#7c3aed; font-weight:600;">{{ pageLabel }}</h4>
+        <h4 class="mb-1" style="color:#008080; font-weight:600;">{{ pageLabel }}</h4>
         <p class="text-muted mb-4" style="font-size:14px;">
           You are currently viewing: {{ pageLabel }}
         </p>
@@ -157,14 +157,13 @@ export default {
 }
 
 .sidebar-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.18);
   color: #fff;
 }
 
-/* ✅ Active page — white pill with purple text */
 .sidebar-btn-active {
   background: #ffffff !important;
-  color: #154556 !important;
+  color: #006666 !important;
   font-weight: 700;
 }
 </style>

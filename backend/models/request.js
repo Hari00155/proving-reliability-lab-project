@@ -7,29 +7,29 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false
     },
 
-    userName: DataTypes.STRING,
-    deptId: DataTypes.STRING,
-    date: DataTypes.DATEONLY,
+    userName:  DataTypes.STRING,
+    deptId:    DataTypes.STRING,
+    date:      DataTypes.DATEONLY,
 
     // ===== PART DETAILS =====
-    partNo: DataTypes.STRING,
-    description: DataTypes.TEXT,
+    partNo:       DataTypes.STRING,
+    description:  DataTypes.TEXT,
     platformCode: DataTypes.STRING,
-    productCode: DataTypes.STRING,
-    customer: DataTypes.STRING,
+    productCode:  DataTypes.STRING,
+    customer:     DataTypes.STRING,
 
     // ===== TEST =====
-    samples: DataTypes.INTEGER,
-    testType: DataTypes.STRING,
-    category: DataTypes.STRING,
+    samples:     DataTypes.INTEGER,
+    testType:    DataTypes.STRING,
+    category:    DataTypes.STRING,
     testDetails: DataTypes.TEXT,
-    special: DataTypes.STRING,
-    criteria: DataTypes.STRING,
-    spec: DataTypes.STRING,
-    testName: DataTypes.STRING,
+    special:     DataTypes.STRING,
+    criteria:    DataTypes.STRING,
+    spec:        DataTypes.STRING,
+    testName:    DataTypes.STRING,
 
     // ===== FILE =====
-    attachment: DataTypes.TEXT,
+    attachment:     DataTypes.TEXT,
     attachmentName: DataTypes.STRING,
 
     // ===== STATUS =====

@@ -6,8 +6,13 @@
     <table class="table table-bordered">
       <thead>
         <tr>
-          <th>S.No</th><th>Req No</th><th>PL No</th>
-          <th>User</th><th>Part No</th><th>Status</th><th>Actions</th>
+          <th>S.No</th>
+          <th>Req No</th>
+          <th>PL No</th>
+          <th>User</th>
+          <th>Part No</th>
+          <th>Status</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -19,7 +24,9 @@
           <td>{{ r.partNo }}</td>
           <td>{{ r.status }}</td>
           <td>
-            <button class="btn btn-primary btn-sm me-1" @click="openMonitoring(r)">Monitoring</button>
+            <button class="btn btn-primary btn-sm me-1" @click="openMonitoring(r)">
+              Monitoring
+            </button>
             <button class="btn btn-warning btn-sm me-1" @click="openReport(r)">Report</button>
 
             <!-- EDIT MONITORING -->
@@ -27,28 +34,36 @@
               v-if="monitoringCache[r.requestNo]"
               class="btn btn-outline-secondary btn-sm me-1"
               @click="editMonitoring(r)"
-            >✏ Edit Mon.</button>
+            >
+              ✏ Edit Mon.
+            </button>
 
             <!-- 🔥 DELETE MONITORING -->
             <button
               v-if="monitoringCache[r.requestNo]"
               class="btn btn-outline-danger btn-sm me-1"
               @click="confirmDeleteMonitoring(r)"
-            >🗑 Del Mon.</button>
+            >
+              🗑 Del Mon.
+            </button>
 
             <!-- EDIT REPORT -->
             <button
               v-if="reportCache[r.requestNo]"
               class="btn btn-outline-secondary btn-sm me-1"
               @click="editReport(r)"
-            >✏ Edit Rep.</button>
+            >
+              ✏ Edit Rep.
+            </button>
 
             <!-- 🔥 DELETE REPORT -->
             <button
               v-if="reportCache[r.requestNo]"
               class="btn btn-outline-danger btn-sm"
               @click="confirmDeleteReport(r)"
-            >🗑 Del Rep.</button>
+            >
+              🗑 Del Rep.
+            </button>
           </td>
         </tr>
       </tbody>
@@ -56,14 +71,14 @@
 
     <!-- ===== DELETE CONFIRM MODAL ===== -->
     <div v-if="deleteModal.show" class="modal-overlay">
-      <div class="modal-box" style="width:420px;text-align:center;">
-        <div style="font-size:48px;">⚠️</div>
+      <div class="modal-box" style="width: 420px; text-align: center">
+        <div style="font-size: 48px">⚠️</div>
         <h5 class="mt-2 mb-2">Confirm Delete</h5>
         <p class="mb-3">
           Are you sure you want to delete the
           <strong>{{ deleteModal.type === 'monitoring' ? 'Monitoring' : 'Report' }}</strong>
-          for Request No: <strong>{{ deleteModal.requestNo }}</strong>?
-          <br/><span style="color:#c00;font-size:12px;">This action cannot be undone.</span>
+          for Request No: <strong>{{ deleteModal.requestNo }}</strong
+          >? <br /><span style="color: #c00; font-size: 12px">This action cannot be undone.</span>
         </p>
         <div class="d-flex gap-2 justify-content-center">
           <button class="btn btn-danger" @click="executeDelete">Yes, Delete</button>
@@ -74,20 +89,32 @@
 
     <!-- ===== MONITORING MODAL ===== -->
     <div v-if="monitoring" class="modal-overlay">
-      <div class="modal-box" style="max-height:90vh;overflow-y:auto;">
+      <div class="modal-box" style="max-height: 90vh; overflow-y: auto">
         <h4>📘 {{ monitoringEditMode ? 'Edit' : 'New' }} Monitoring Sheet</h4>
 
         <label class="form-label">PL No</label>
         <input v-model="monitoring.plNo" class="form-control mb-2 auto-field" readonly />
 
         <label class="form-label">Equipment Name</label>
-        <input v-model="monitoring.equipmentName" class="form-control mb-2" placeholder="Equipment Name" />
+        <input
+          v-model="monitoring.equipmentName"
+          class="form-control mb-2"
+          placeholder="Equipment Name"
+        />
 
         <label class="form-label">Equipment No</label>
-        <input v-model="monitoring.equipmentNo" class="form-control mb-2" placeholder="Equipment No" />
+        <input
+          v-model="monitoring.equipmentNo"
+          class="form-control mb-2"
+          placeholder="Equipment No"
+        />
 
         <label class="form-label">Standard / Spec</label>
-        <input v-model="monitoring.standard" class="form-control mb-2" placeholder="e.g. Spec As per M210216..." />
+        <input
+          v-model="monitoring.standard"
+          class="form-control mb-2"
+          placeholder="e.g. Spec As per M210216..."
+        />
 
         <label class="form-label">Request Date</label>
         <input type="date" v-model="monitoring.requestDate" class="form-control mb-2" />
@@ -102,10 +129,18 @@
         <input v-model="monitoring.targetCycle" class="form-control mb-2" placeholder="Target" />
 
         <label class="form-label">Initial Hourmeter / Counter</label>
-        <input v-model="monitoring.initialReading" class="form-control mb-2" placeholder="Initial" />
+        <input
+          v-model="monitoring.initialReading"
+          class="form-control mb-2"
+          placeholder="Initial"
+        />
 
         <label class="form-label">Current Reading</label>
-        <input v-model="monitoring.currentReading" class="form-control mb-2" placeholder="Current" />
+        <input
+          v-model="monitoring.currentReading"
+          class="form-control mb-2"
+          placeholder="Current"
+        />
 
         <label class="form-label">Balance (Yet to Cover)</label>
         <input :value="yetToCover" class="form-control mb-2 auto-field" readonly />
@@ -114,29 +149,56 @@
         <input v-model="monitoring.purpose" class="form-control mb-2" placeholder="Purpose" />
 
         <label class="form-label">Tryout Details / Remarks</label>
-        <textarea v-model="monitoring.remarks" class="form-control mb-2" rows="2" placeholder="Tryout details..."></textarea>
+        <textarea
+          v-model="monitoring.remarks"
+          class="form-control mb-2"
+          rows="2"
+          placeholder="Tryout details..."
+        ></textarea>
 
         <label class="form-label">Acceptance Criteria</label>
-        <textarea v-model="monitoring.acceptanceCriteria" class="form-control mb-2" rows="2" placeholder="Acceptance criteria..."></textarea>
+        <textarea
+          v-model="monitoring.acceptanceCriteria"
+          class="form-control mb-2"
+          rows="2"
+          placeholder="Acceptance criteria..."
+        ></textarea>
 
         <label class="form-label">Test Results</label>
-        <textarea v-model="monitoring.testResults" class="form-control mb-2" rows="2" placeholder="Test results..."></textarea>
+        <textarea
+          v-model="monitoring.testResults"
+          class="form-control mb-2"
+          rows="2"
+          placeholder="Test results..."
+        ></textarea>
 
         <label class="form-label">Responsibility</label>
-        <input v-model="monitoring.responsibility" class="form-control mb-2" placeholder="Responsibility" />
+        <input
+          v-model="monitoring.responsibility"
+          class="form-control mb-2"
+          placeholder="Responsibility"
+        />
 
         <label class="form-label">Requested By</label>
-        <input v-model="monitoring.requestedBy" class="form-control mb-2" placeholder="Requested By" />
+        <input
+          v-model="monitoring.requestedBy"
+          class="form-control mb-2"
+          placeholder="Requested By"
+        />
 
         <div class="d-flex gap-2 mt-2 flex-wrap">
           <button class="btn btn-info" @click="printSheet('monitoring')">🖨 Print Datasheet</button>
-          <button class="btn btn-success" @click="submitDaily">{{ monitoringEditMode ? 'Update' : 'Save' }}</button>
+          <button class="btn btn-success" @click="submitDaily">
+            {{ monitoringEditMode ? 'Update' : 'Save' }}
+          </button>
           <!-- 🔥 DELETE INSIDE MODAL (only in edit mode) -->
           <button
             v-if="monitoringEditMode"
             class="btn btn-danger"
             @click="confirmDeleteMonitoring({ requestNo: monitoring.requestNo })"
-          >🗑 Delete</button>
+          >
+            🗑 Delete
+          </button>
           <button class="btn btn-secondary" @click="monitoring = null">Close</button>
         </div>
       </div>
@@ -144,7 +206,7 @@
 
     <!-- ===== REPORT MODAL ===== -->
     <div v-if="report" class="modal-overlay">
-      <div class="modal-box large" style="max-height:90vh;overflow-y:auto;">
+      <div class="modal-box large" style="max-height: 90vh; overflow-y: auto">
         <h4>📄 {{ reportEditMode ? 'Edit' : 'New' }} Proving Test Report</h4>
 
         <!-- AUTO-FILLED FROM REQUEST -->
@@ -195,7 +257,12 @@
         <input v-model="report.testName" class="form-control mb-2 auto-field" readonly />
 
         <label class="form-label">Special Features</label>
-        <textarea v-model="report.special" class="form-control mb-2 auto-field" rows="2" readonly></textarea>
+        <textarea
+          v-model="report.special"
+          class="form-control mb-2 auto-field"
+          rows="2"
+          readonly
+        ></textarea>
 
         <label class="form-label">Purpose of the Test</label>
         <input v-model="report.category" class="form-control mb-2 auto-field" readonly />
@@ -215,7 +282,12 @@
         <input v-model="report.spec" class="form-control mb-2 auto-field" readonly />
 
         <label class="form-label">Spec / Test Details</label>
-        <textarea v-model="report.testDetails" class="form-control mb-2 auto-field" rows="3" readonly></textarea>
+        <textarea
+          v-model="report.testDetails"
+          class="form-control mb-2 auto-field"
+          rows="3"
+          readonly
+        ></textarea>
 
         <!-- AUTO-FILLED FROM MONITORING -->
         <div class="section-header mt-3">📘 Monitoring Details (Auto-filled)</div>
@@ -253,13 +325,28 @@
         <div class="section-header mt-3">✏️ Manual Entry</div>
 
         <label class="form-label">Acceptance Criteria</label>
-        <textarea v-model="report.criteria" class="form-control mb-2" rows="3" placeholder="Enter acceptance criteria..."></textarea>
+        <textarea
+          v-model="report.criteria"
+          class="form-control mb-2"
+          rows="3"
+          placeholder="Enter acceptance criteria..."
+        ></textarea>
 
         <label class="form-label">Observation</label>
-        <textarea v-model="report.observation" class="form-control mb-2" rows="3" placeholder="Enter observation..."></textarea>
+        <textarea
+          v-model="report.observation"
+          class="form-control mb-2"
+          rows="3"
+          placeholder="Enter observation..."
+        ></textarea>
 
         <label class="form-label">Conclusion</label>
-        <textarea v-model="report.conclusion" class="form-control mb-2" rows="3" placeholder="Enter conclusion..."></textarea>
+        <textarea
+          v-model="report.conclusion"
+          class="form-control mb-2"
+          rows="3"
+          placeholder="Enter conclusion..."
+        ></textarea>
 
         <div class="row g-2 mb-2">
           <div class="col-4">
@@ -287,12 +374,26 @@
         <div class="section-header">📎 Attachments</div>
 
         <label class="form-label">Post Data Upload (Report Attachment)</label>
-        <input type="file" @change="onPostDataChange" class="form-control mb-1" accept=".pdf,.xls,.xlsx,.doc,.docx,.csv" />
+        <input
+          type="file"
+          @change="onPostDataChange"
+          class="form-control mb-1"
+          accept=".pdf,.xls,.xlsx,.doc,.docx,.csv"
+        />
         <div v-if="report.postDataName" class="file-tag mb-2">📄 {{ report.postDataName }}</div>
 
         <label class="form-label">Failure Photos Upload</label>
-        <input type="file" @change="onFailurePhotosChange" class="form-control mb-2" accept="image/*" multiple />
-        <div v-if="report.failurePhotos && report.failurePhotos.length" class="photo-preview-row mb-2">
+        <input
+          type="file"
+          @change="onFailurePhotosChange"
+          class="form-control mb-2"
+          accept="image/*"
+          multiple
+        />
+        <div
+          v-if="report.failurePhotos && report.failurePhotos.length"
+          class="photo-preview-row mb-2"
+        >
           <div v-for="(p, idx) in report.failurePhotos" :key="idx" class="photo-thumb-wrap">
             <img :src="p" class="photo-thumb" />
             <button class="thumb-remove" @click="removePhoto(idx)">×</button>
@@ -303,29 +404,56 @@
         <div class="section-header mt-3">✍️ Signatures (embedded in printed report)</div>
 
         <label class="form-label">Reported By – Signature Image</label>
-        <input type="file" @change="onSignReportedChange" class="form-control mb-1" accept="image/*" />
-        <img v-if="report.signReportedPreview" :src="report.signReportedPreview" class="sig-preview mb-2" />
+        <input
+          type="file"
+          @change="onSignReportedChange"
+          class="form-control mb-1"
+          accept="image/*"
+        />
+        <img
+          v-if="report.signReportedPreview"
+          :src="report.signReportedPreview"
+          class="sig-preview mb-2"
+        />
 
         <label class="form-label">Approved By – Signature Image</label>
-        <input type="file" @change="onSignApprovedChange" class="form-control mb-1" accept="image/*" />
-        <img v-if="report.signApprovedPreview" :src="report.signApprovedPreview" class="sig-preview mb-2" />
+        <input
+          type="file"
+          @change="onSignApprovedChange"
+          class="form-control mb-1"
+          accept="image/*"
+        />
+        <img
+          v-if="report.signApprovedPreview"
+          :src="report.signApprovedPreview"
+          class="sig-preview mb-2"
+        />
 
         <!-- ACTIONS -->
         <div class="d-flex gap-2 mt-3 flex-wrap">
           <button class="btn btn-primary" @click="printSheet('report')">🖨 Print Report</button>
-          <button class="btn btn-danger-outline" style="border:1px solid #e53935;color:#e53935;" @click="downloadPDF('report')">⬇ PDF</button>
-          <button class="btn btn-success" @click="submitReport">{{ reportEditMode ? 'Update' : 'Save' }}</button>
+          <button
+            class="btn btn-danger-outline"
+            style="border: 1px solid #e53935; color: #e53935"
+            @click="downloadPDF('report')"
+          >
+            ⬇ PDF
+          </button>
+          <button class="btn btn-success" @click="submitReport">
+            {{ reportEditMode ? 'Update' : 'Save' }}
+          </button>
           <!-- 🔥 DELETE INSIDE MODAL (only in edit mode) -->
           <button
             v-if="reportEditMode"
             class="btn btn-danger"
             @click="confirmDeleteReport({ requestNo: report.reqNo })"
-          >🗑 Delete</button>
+          >
+            🗑 Delete
+          </button>
           <button class="btn btn-secondary" @click="report = null">Close</button>
         </div>
       </div>
     </div>
-
   </div>
 </template>
 
@@ -335,11 +463,12 @@ import axios from 'axios'
 // ─── Report No Generator ───────────────────────────────────────
 function generateReportNo() {
   const today = new Date()
-  const dateStr = today.getFullYear().toString()
-    + String(today.getMonth() + 1).padStart(2, '0')
-    + String(today.getDate()).padStart(2, '0')
+  const dateStr =
+    today.getFullYear().toString() +
+    String(today.getMonth() + 1).padStart(2, '0') +
+    String(today.getDate()).padStart(2, '0')
   const key = `rptSeq_${dateStr}`
-  const seq = (parseInt(localStorage.getItem(key) || '0') + 1)
+  const seq = parseInt(localStorage.getItem(key) || '0') + 1
   localStorage.setItem(key, seq)
   return `RPT-${dateStr}-${String(seq).padStart(4, '0')}`
 }
@@ -372,9 +501,9 @@ export default {
       // 🔥 DELETE CONFIRM MODAL STATE
       deleteModal: {
         show: false,
-        type: '',        // 'monitoring' | 'report'
+        type: '', // 'monitoring' | 'report'
         requestNo: '',
-        dbId: null,      // backend DB id (if available)
+        dbId: null, // backend DB id (if available)
       },
     }
   },
@@ -382,11 +511,16 @@ export default {
   computed: {
     yetToCover() {
       if (!this.monitoring) return 0
-      return (parseFloat(this.monitoring.targetCycle) || 0) - (parseFloat(this.monitoring.currentReading) || 0)
+      return (
+        (parseFloat(this.monitoring.targetCycle) || 0) -
+        (parseFloat(this.monitoring.currentReading) || 0)
+      )
     },
     reportBalance() {
       if (!this.report) return 0
-      return (parseFloat(this.report.targetCycle) || 0) - (parseFloat(this.report.currentReading) || 0)
+      return (
+        (parseFloat(this.report.targetCycle) || 0) - (parseFloat(this.report.currentReading) || 0)
+      )
     },
   },
 
@@ -577,7 +711,6 @@ export default {
         this.deleteModal.show = false
 
         alert(`🗑 ${type === 'monitoring' ? 'Monitoring' : 'Report'} deleted successfully!`)
-
       } catch (err) {
         console.error('❌ Delete error:', err)
         alert('Error deleting record. Check console.')
@@ -648,7 +781,9 @@ export default {
       }
     },
 
-    downloadPDF(type) { this.printSheet(type) },
+    downloadPDF(type) {
+      this.printSheet(type)
+    },
 
     // ═══════════════════════════════════════════════════════
     //  PRINT ENGINE
@@ -657,19 +792,21 @@ export default {
       const logo = window.location.origin + '/images/TVS.jpg'
 
       if (type === 'report') {
-        const d   = this.report
+        const d = this.report
         const bal = this.reportBalance
 
         const sigR = d.signReportedPreview
           ? `${d.reportedBy || ''}<br/><img src="${d.signReportedPreview}" style="height:44px;margin-top:3px;"/>`
-          : (d.reportedBy || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;')
+          : d.reportedBy || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'
 
         const sigA = d.signApprovedPreview
           ? `${d.approvedBy || ''}<br/><img src="${d.signApprovedPreview}" style="height:44px;margin-top:3px;"/>`
-          : (d.approvedBy || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;')
-
+          : d.approvedBy || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'
         const photoImgs = (d.failurePhotos || [])
-          .map(src => `<img src="${src}" style="max-width:165px;max-height:125px;margin:3px;border:1px solid #999;object-fit:cover;"/>`)
+          .map(
+            (src) =>
+              `<img src="${src}" style="max-width:260px;max-height:200px;margin:5px;border:1px solid #999;object-fit:cover;"/>`,
+          )
           .join('')
         const failureBlock = (d.failurePhotos || []).length
           ? `<hr style="border:none;border-top:1px solid #000;margin:5px 0;"/>
@@ -744,10 +881,10 @@ export default {
 <div class="body-row"><span class="lbl">Acceptance<br/>Criteria :</span><span class="val" style="white-space:pre-wrap;">${d.criteria || ''}</span></div>
 <hr class="sec"/>
 <div class="body-row"><span class="lbl">Observation :</span><span class="val" style="white-space:pre-wrap;">${d.observation || ''}</span></div>
-<hr class="sec"/>
-<div class="body-row"><span class="lbl">Conclusion &nbsp; :</span><span class="val" style="white-space:pre-wrap;">${d.conclusion || ''}</span></div>
 ${postDataBlock}
 ${failureBlock}
+<hr class="sec"/>
+<div class="body-row"><span class="lbl">Conclusion &nbsp; :</span><span class="val" style="white-space:pre-wrap;">${d.conclusion || ''}</span></div>
 <div class="sig-line">
   <div class="sig-cell"><b>Reported By :</b>&nbsp;&nbsp;${sigR}</div>
   <div class="sig-cell"><b>Approved By :</b>&nbsp;&nbsp;${sigA}</div>
@@ -864,9 +1001,11 @@ ${failureBlock}
 <style>
 .modal-overlay {
   position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.55);
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.55);
   z-index: 1000;
   overflow-y: auto;
 }
@@ -876,9 +1015,11 @@ ${failureBlock}
   width: 540px;
   margin: 36px auto;
   border-radius: 6px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
 }
-.large { width: 760px; }
+.large {
+  width: 760px;
+}
 .section-header {
   font-weight: 600;
   font-size: 13.5px;
@@ -903,21 +1044,48 @@ ${failureBlock}
   font-size: 13px;
   color: #2e7d32;
 }
-.photo-preview-row { display:flex; flex-wrap:wrap; gap:8px; }
-.photo-thumb-wrap  { position:relative; }
-.photo-thumb { width:80px; height:80px; object-fit:cover; border:1px solid #ccc; border-radius:4px; }
+.photo-preview-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.photo-thumb-wrap {
+  position: relative;
+}
+.photo-thumb {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
 .thumb-remove {
-  position:absolute; top:-6px; right:-6px;
-  background:#e53935; color:#fff;
-  border:none; border-radius:50%;
-  width:20px; height:20px; font-size:13px;
-  cursor:pointer; line-height:1.1;
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #e53935;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 13px;
+  cursor: pointer;
+  line-height: 1.1;
 }
 .sig-preview {
-  display:block; height:60px;
-  border:1px dashed #aaa; border-radius:4px;
-  padding:3px; object-fit:contain; background:#fafafa;
+  display: block;
+  height: 60px;
+  border: 1px dashed #aaa;
+  border-radius: 4px;
+  padding: 3px;
+  object-fit: contain;
+  background: #fafafa;
 }
-.gap-2 { gap:8px; }
-.me-1  { margin-right:4px; }
+.gap-2 {
+  gap: 8px;
+}
+.me-1 {
+  margin-right: 4px;
+}
 </style>
