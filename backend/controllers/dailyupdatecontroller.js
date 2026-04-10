@@ -5,75 +5,72 @@ const { DailyUpdate } = require("../models");
 // ─────────────────────────────────────────────────────────────
 exports.createDailyUpdate = async (req, res) => {
   try {
-    console.log("📥 BODY KEYS:", Object.keys(req.body));
+    console.log("📥 DAILY UPDATE BODY KEYS:", Object.keys(req.body));
 
-    // ✅ SAFE NUMBER CONVERSION
-    const target  = parseFloat(req.body.targetCycles)    || 0;
-    const current = parseFloat(req.body.currentReading)  || 0;
-    const initial = parseFloat(req.body.initialReading)  || 0;
+    if (!req.body.allocationPlNo && !req.body.plNo) {
+      return res.status(400).json({
+        success: false,
+        error: "PL No is required"
+      });
+    }
 
-    // ✅ AUTO CALCULATION
-    const yetToCover = target - current;
+    // 🔥 FIX: targetCycle (not targetCycles) — matches frontend + model
+    const yetToCover =
+      (parseFloat(req.body.targetCycle) || 0) -
+      (parseFloat(req.body.currentReading) || 0);
 
-    // ✅ FULL DATA BUILD — matches updated model
     const data = {
-
-      // ── Link with Request ─────────────────────────────
-      allocationPlNo: req.body.allocationPlNo || req.body.plNo || "",
-      requestNo:      req.body.requestNo      || "",             // 🔥 ADDED
-      partNo:         req.body.partNo         || "",             // 🔥 ADDED
+      // ── Link with Request ──────────────────────────────
+      allocationPlNo: req.body.plNo || req.body.allocationPlNo || "",
+      requestNo:      req.body.requestNo    || "",
+      partNo:         req.body.partNo       || "",
 
       // ── Product / Test Info ───────────────────────────
-      description: req.body.description || "",                   // 🔥 ADDED
-      customer:    req.body.customer    || "",                   // 🔥 ADDED
-      testType:    req.body.testType    || "",                   // 🔥 ADDED
-      samples:     req.body.samples     || "",                   // 🔥 ADDED
-      testDetails: req.body.testDetails || "",                   // 🔥 ADDED
+      description:  req.body.description  || "",
+      customer:     req.body.customer     || "",
+      testType:     req.body.testType     || "",
+      samples:      req.body.samples      || "",
+      testDetails:  req.body.testDetails  || "",
 
       // ── Equipment ─────────────────────────────────────
-      equipmentName: req.body.equipmentName || "",               // 🔥 ADDED
+      equipmentName: req.body.equipmentName || "",
       equipmentNo:   req.body.equipmentNo   || "",
 
       // ── Standard ──────────────────────────────────────
-      standard: req.body.standard || "",                         // 🔥 ADDED
+      standard: req.body.standard || "",
 
       // ── Dates ─────────────────────────────────────────
-      updateDate:      req.body.updateDate      || null,
-      requestDate:     req.body.requestDate     || null,         // 🔥 ADDED
-      testStartedOn:   req.body.testStartedOn   || null,         // 🔥 ADDED
-      testCompletedOn: req.body.testCompletedOn || null,         // 🔥 ADDED
+      requestDate:     req.body.requestDate     || null,
+      testStartedOn:   req.body.testStartedOn   || null,
+      testCompletedOn: req.body.testCompletedOn || null,
 
-      // ── Cycles / Counter ──────────────────────────────
-      targetCycles:   target,
-      initialReading: initial,
-      currentReading: current,
-      yetToCover:     yetToCover,                                // ✅ AUTO CALCULATED
+      // ── Cycles ────────────────────────────────────────
+      targetCycle:    parseFloat(req.body.targetCycle)    || 0,
+      initialReading: parseFloat(req.body.initialReading) || 0,
+      currentReading: parseFloat(req.body.currentReading) || 0,
+      yetToCover,
 
-      // ── Purpose & Test Content ────────────────────────
-      purpose:            req.body.purpose            || "",     // 🔥 ADDED
+      // ── Purpose & Content ─────────────────────────────
+      purpose:            req.body.purpose            || "",
       remarks:            req.body.remarks            || "",
-      acceptanceCriteria: req.body.acceptanceCriteria || "",     // 🔥 ADDED
-      testResults:        req.body.testResults        || "",     // 🔥 ADDED
+      acceptanceCriteria: req.body.acceptanceCriteria || "",
+      testResults:        req.body.testResults        || "",
 
       // ── Responsibility ────────────────────────────────
-      responsibility: req.body.responsibility || "Admin",        // 🔥 ADDED
-      requestedBy:    req.body.requestedBy    || "",             // 🔥 ADDED
+      responsibility: req.body.responsibility || "Admin",
+      requestedBy:    req.body.requestedBy    || "",
 
-      // ── Photo (kept for compatibility) ────────────────
-      photo: req.file
-        ? "/uploads/" + req.file.filename
-        : null
+      // ── Photo (multer file upload) ────────────────────
+      photo: req.file ? req.file.filename : null
     };
 
-    console.log("✅ SAVING MONITORING:", data.requestNo, data.allocationPlNo);
-
-    // ✅ SAVE TO DB
     const saved = await DailyUpdate.create(data);
 
+    // 🔥 CRITICAL: return { data: { id } } so frontend can store dbId
     return res.status(201).json({
       success: true,
       message: "✅ Monitoring Saved Successfully",
-      data: saved
+      data: { id: saved.id }
     });
 
   } catch (err) {
@@ -104,18 +101,15 @@ exports.getDailyUpdates = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────────────────────
-//  GET SINGLE BY ID
+//  GET BY ID
 // ─────────────────────────────────────────────────────────────
 exports.getDailyUpdateById = async (req, res) => {
   try {
-    const update = await DailyUpdate.findByPk(req.params.id);
-    if (!update) {
-      return res.status(404).json({
-        success: false,
-        error: "Monitoring record not found"
-      });
+    const record = await DailyUpdate.findByPk(req.params.id);
+    if (!record) {
+      return res.status(404).json({ success: false, error: "Record not found" });
     }
-    return res.json({ success: true, data: update });
+    return res.json({ success: true, data: record });
   } catch (err) {
     console.error("❌ DAILY UPDATE FETCH BY ID ERROR:", err);
     return res.status(500).json({
@@ -126,21 +120,17 @@ exports.getDailyUpdateById = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────────────────────
-//  GET BY requestNo (used by frontend edit flow)
+//  GET BY REQUEST NO
 // ─────────────────────────────────────────────────────────────
 exports.getDailyUpdateByRequestNo = async (req, res) => {
   try {
-    const update = await DailyUpdate.findOne({
-      where: { requestNo: req.params.requestNo },
-      order: [["createdAt", "DESC"]]
+    const record = await DailyUpdate.findOne({
+      where: { requestNo: req.params.requestNo }
     });
-    if (!update) {
-      return res.status(404).json({
-        success: false,
-        error: "Monitoring record not found"
-      });
+    if (!record) {
+      return res.status(404).json({ success: false, error: "Record not found" });
     }
-    return res.json({ success: true, data: update });
+    return res.json({ success: true, data: record });
   } catch (err) {
     console.error("❌ DAILY UPDATE FETCH BY REQUEST NO ERROR:", err);
     return res.status(500).json({
@@ -151,63 +141,47 @@ exports.getDailyUpdateByRequestNo = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────────────────────
-//  UPDATE (Edit Monitoring Mode)
+//  UPDATE DAILY UPDATE (Edit Monitoring)
 // ─────────────────────────────────────────────────────────────
 exports.updateDailyUpdate = async (req, res) => {
   try {
-    const update = await DailyUpdate.findByPk(req.params.id);
-    if (!update) {
-      return res.status(404).json({
-        success: false,
-        error: "Monitoring record not found"
-      });
+    const record = await DailyUpdate.findByPk(req.params.id);
+    if (!record) {
+      return res.status(404).json({ success: false, error: "Record not found" });
     }
 
-    // ✅ RECALCULATE on update
-    const target  = parseFloat(req.body.targetCycles)   || update.targetCycles;
-    const current = parseFloat(req.body.currentReading) || update.currentReading;
-    const yetToCover = target - current;
+    // Recalculate yetToCover using incoming or existing values
+    const targetCycle    = parseFloat(req.body.targetCycle)    || record.targetCycle;
+    const currentReading = parseFloat(req.body.currentReading) || record.currentReading;
+    const yetToCover     = targetCycle - currentReading;
 
     const updatable = {
-      // Equipment
-      equipmentName: req.body.equipmentName || update.equipmentName,
-      equipmentNo:   req.body.equipmentNo   || update.equipmentNo,
-      standard:      req.body.standard      || update.standard,
-
-      // Dates
-      updateDate:      req.body.updateDate      || update.updateDate,
-      requestDate:     req.body.requestDate     || update.requestDate,
-      testStartedOn:   req.body.testStartedOn   || update.testStartedOn,
-      testCompletedOn: req.body.testCompletedOn || update.testCompletedOn,
-
-      // Cycles — recalculated
-      targetCycles:   target,
-      currentReading: current,
-      initialReading: parseFloat(req.body.initialReading) || update.initialReading,
-      yetToCover:     yetToCover,                          // ✅ RECALCULATED
-
-      // Content
-      purpose:            req.body.purpose            || update.purpose,
-      remarks:            req.body.remarks            || update.remarks,
-      acceptanceCriteria: req.body.acceptanceCriteria || update.acceptanceCriteria,
-      testResults:        req.body.testResults        || update.testResults,
-
-      // People
-      responsibility: req.body.responsibility || update.responsibility,
-      requestedBy:    req.body.requestedBy    || update.requestedBy,
-
-      // Photo — only update if new file uploaded
-      photo: req.file
-        ? "/uploads/" + req.file.filename
-        : update.photo
+      equipmentName:    req.body.equipmentName    || record.equipmentName,
+      equipmentNo:      req.body.equipmentNo      || record.equipmentNo,
+      standard:         req.body.standard         || record.standard,
+      requestDate:      req.body.requestDate      || record.requestDate,
+      testStartedOn:    req.body.testStartedOn    || record.testStartedOn,
+      testCompletedOn:  req.body.testCompletedOn  || record.testCompletedOn,
+      targetCycle,
+      initialReading:   parseFloat(req.body.initialReading) || record.initialReading,
+      currentReading,
+      yetToCover,
+      purpose:            req.body.purpose            || record.purpose,
+      remarks:            req.body.remarks            || record.remarks,
+      acceptanceCriteria: req.body.acceptanceCriteria || record.acceptanceCriteria,
+      testResults:        req.body.testResults        || record.testResults,
+      responsibility:     req.body.responsibility     || record.responsibility,
+      requestedBy:        req.body.requestedBy        || record.requestedBy,
+      // Only update photo if a new file was uploaded
+      photo: req.file ? req.file.filename : record.photo
     };
 
-    await update.update(updatable);
+    await record.update(updatable);
 
     return res.json({
       success: true,
       message: "✅ Monitoring Updated Successfully",
-      data: update
+      data: { id: record.id }
     });
 
   } catch (err) {
@@ -220,18 +194,15 @@ exports.updateDailyUpdate = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────────────────────
-//  DELETE
+//  DELETE DAILY UPDATE
 // ─────────────────────────────────────────────────────────────
 exports.deleteDailyUpdate = async (req, res) => {
   try {
-    const update = await DailyUpdate.findByPk(req.params.id);
-    if (!update) {
-      return res.status(404).json({
-        success: false,
-        error: "Monitoring record not found"
-      });
+    const record = await DailyUpdate.findByPk(req.params.id);
+    if (!record) {
+      return res.status(404).json({ success: false, error: "Record not found" });
     }
-    await update.destroy();
+    await record.destroy();
     return res.json({
       success: true,
       message: "🗑 Monitoring Deleted Successfully"

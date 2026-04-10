@@ -26,8 +26,7 @@
         </thead>
 
         <tbody>
-
-          <tr v-for="req in requests" :key="req.id">
+          <tr v-for="req in archivedRequests" :key="req.id">
             <td>{{ formatDate(req.date) }}</td>
 
             <td class="fw-bold text-primary">
@@ -61,16 +60,14 @@
               </a>
               <span v-else>No File</span>
             </td>
-
           </tr>
-
         </tbody>
 
       </table>
     </div>
 
     <!-- EMPTY -->
-    <div v-if="requests.length === 0" class="text-center mt-4">
+    <div v-if="archivedRequests.length === 0" class="text-center mt-4">
       <p>No Archive Data Found ❌</p>
     </div>
 
@@ -83,7 +80,8 @@ import axios from "axios";
 export default {
   data() {
     return {
-      requests: []
+      requests: [],
+      currentYear: new Date().getFullYear() // ✅ e.g. 2026
     };
   },
 
@@ -91,9 +89,19 @@ export default {
     this.loadArchive();
   },
 
+  computed: {
+    // ✅ ARCHIVE: only requests from PREVIOUS years
+    archivedRequests() {
+      return this.requests.filter(req => {
+        if (!req.date) return false;
+        const reqYear = new Date(req.date).getFullYear();
+        return reqYear < this.currentYear; // strictly older than current year
+      });
+    }
+  },
+
   methods: {
 
-    // ✅ LOAD ARCHIVE
     async loadArchive() {
       try {
         const res = await axios.get("http://localhost:5000/api/requests/archive");
@@ -104,18 +112,15 @@ export default {
       }
     },
 
-    // ✅ FILE URL
     fileUrl(name) {
       return `http://localhost:5000/uploads/${name}`;
     },
 
-    // ✅ DATE FORMAT
     formatDate(date) {
       if (!date) return "-";
       return new Date(date).toLocaleDateString();
     },
 
-    // ✅ STATUS COLOR
     statusClass(status) {
       return {
         badge: true,

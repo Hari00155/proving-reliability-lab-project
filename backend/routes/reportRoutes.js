@@ -28,7 +28,16 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-// ================= DB =================
+// ================= MULTER FIELDS =================
+// Frontend sends base64, multer kept for backward compatibility
+const uploadFields = upload.fields([
+  { name: "reportFile",        maxCount: 1  },
+  { name: "signatureReported", maxCount: 1  },
+  { name: "signatureApproved", maxCount: 1  },
+  { name: "failurePhotos",     maxCount: 10 }
+]);
+
+// ================= DB (for report number generation) =================
 const db = require("../config/database");
 
 // ================= AUTO REPORT NUMBER =================
@@ -41,8 +50,8 @@ async function generateReportNo() {
     let nextNumber = 1;
 
     if (rows.length > 0 && rows[0].reportNo) {
-      const lastNo = rows[0].reportNo;
-      const parts = lastNo.split("-");
+      const lastNo   = rows[0].reportNo;
+      const parts    = lastNo.split("-");
       const lastCount = parseInt(parts[2]) || 0;
       nextNumber = lastCount + 1;
     }
@@ -56,24 +65,12 @@ async function generateReportNo() {
   }
 }
 
-// ================= MULTER FIELDS =================
-// 🔥 Since frontend now sends base64, multer is only kept
-//    for backward compatibility — no file fields needed.
-//    But kept here in case any file upload is still used.
-const uploadFields = upload.fields([
-  { name: "reportFile",         maxCount: 1  },
-  { name: "signatureReported",  maxCount: 1  },
-  { name: "signatureApproved",  maxCount: 1  },
-  { name: "failurePhotos",      maxCount: 10 }
-]);
-
 // ================= TEST ROUTE =================
 router.get("/", (req, res) => {
   res.json({ message: "✅ Report API Working" });
 });
 
 // ================= GET ALL REPORTS =================
-// 🔥 ADDED
 router.get("/all", async (req, res, next) => {
   try {
     await controller.getReports(req, res);
@@ -84,8 +81,7 @@ router.get("/all", async (req, res, next) => {
 });
 
 // ================= GET REPORT BY REPORT NO =================
-// 🔥 ADDED — used by frontend edit mode lookup
-// ⚠️ Must be BEFORE /:id to avoid conflict
+// 🔥 MUST be BEFORE /:id to avoid "by-report" being treated as an id
 router.get("/by-report/:reportNo", async (req, res, next) => {
   try {
     await controller.getReportByReportNo(req, res);
@@ -96,7 +92,6 @@ router.get("/by-report/:reportNo", async (req, res, next) => {
 });
 
 // ================= GET REPORT BY ID =================
-// 🔥 ADDED
 router.get("/:id", async (req, res, next) => {
   try {
     await controller.getReportById(req, res);
@@ -115,13 +110,11 @@ router.post("/", uploadFields, async (req, res, next) => {
     // ✅ GENERATE REPORT NUMBER
     const reportNo = await generateReportNo();
     req.body.reportNo = reportNo;
-
     console.log("🔖 Generated Report No:", reportNo);
 
-    // ✅ SAVE USING CONTROLLER
     await controller.createReport(req, res);
 
-    // ✅ FALLBACK — if controller didn't send response
+    // Fallback — controller should always send a response
     if (!res.headersSent) {
       return res.status(201).json({
         success: true,
@@ -130,48 +123,48 @@ router.post("/", uploadFields, async (req, res, next) => {
       });
     }
 
-    } catch (err) {
-      console.error("❌ ROUTE ERROR (CREATE):", err);
-      if (!res.headersSent) {
-        return res.status(500).json({
-          success: false,
-          message: "❌ Error Creating Report",
-          error: err.message
-        });
-      }
+  } catch (err) {
+    console.error("❌ ROUTE ERROR (CREATE):", err);
+    if (!res.headersSent) {
+      return res.status(500).json({
+        success: false,
+        message: "❌ Error Creating Report",
+        error: err.message
+      });
     }
-  });
-  
-  // ================= UPDATE REPORT =================
-  router.put("/:id", uploadFields, async (req, res, next) => {
-    try {
-      await controller.updateReport(req, res);
-    } catch (err) {
-      console.error("❌ ROUTE ERROR (UPDATE):", err);
-      if (!res.headersSent) {
-        return res.status(500).json({
-          success: false,
-          message: "❌ Error Updating Report",
-          error: err.message
-        });
-      }
+  }
+});
+
+// ================= UPDATE REPORT =================
+router.put("/:id", uploadFields, async (req, res, next) => {
+  try {
+    await controller.updateReport(req, res);
+  } catch (err) {
+    console.error("❌ ROUTE ERROR (UPDATE):", err);
+    if (!res.headersSent) {
+      return res.status(500).json({
+        success: false,
+        message: "❌ Error Updating Report",
+        error: err.message
+      });
     }
-  });
-  
-  // ================= DELETE REPORT =================
-  router.delete("/:id", async (req, res, next) => {
-    try {
-      await controller.deleteReport(req, res);
-    } catch (err) {
-      console.error("❌ ROUTE ERROR (DELETE):", err);
-      if (!res.headersSent) {
-        return res.status(500).json({
-          success: false,
-          message: "❌ Error Deleting Report",
-          error: err.message
-        });
-      }
+  }
+});
+
+// ================= DELETE REPORT =================
+router.delete("/:id", async (req, res, next) => {
+  try {
+    await controller.deleteReport(req, res);
+  } catch (err) {
+    console.error("❌ ROUTE ERROR (DELETE):", err);
+    if (!res.headersSent) {
+      return res.status(500).json({
+        success: false,
+        message: "❌ Error Deleting Report",
+        error: err.message
+      });
     }
-  });
-  
-  module.exports = router;
+  }
+});
+
+module.exports = router;

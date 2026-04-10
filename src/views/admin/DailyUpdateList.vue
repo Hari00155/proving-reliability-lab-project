@@ -31,36 +31,36 @@
 
             <!-- EDIT MONITORING -->
             <button
-              v-if="monitoringCache[r.requestNo]"
+              v-if="hasMonitoring(r.requestNo)"
               class="btn btn-outline-secondary btn-sm me-1"
               @click="editMonitoring(r)"
             >
               ✏ Edit Mon.
             </button>
 
-            <!-- 🔥 DELETE MONITORING -->
+            <!-- DELETE MONITORING -->
             <button
-              v-if="monitoringCache[r.requestNo]"
+              v-if="hasMonitoring(r.requestNo)"
               class="btn btn-outline-danger btn-sm me-1"
-              @click="confirmDeleteMonitoring(r)"
+              @click="confirmDeleteMonitoring(r.requestNo)"
             >
               🗑 Del Mon.
             </button>
 
             <!-- EDIT REPORT -->
             <button
-              v-if="reportCache[r.requestNo]"
+              v-if="hasReport(r.requestNo)"
               class="btn btn-outline-secondary btn-sm me-1"
               @click="editReport(r)"
             >
               ✏ Edit Rep.
             </button>
 
-            <!-- 🔥 DELETE REPORT -->
+            <!-- DELETE REPORT -->
             <button
-              v-if="reportCache[r.requestNo]"
+              v-if="hasReport(r.requestNo)"
               class="btn btn-outline-danger btn-sm"
-              @click="confirmDeleteReport(r)"
+              @click="confirmDeleteReport(r.requestNo)"
             >
               🗑 Del Rep.
             </button>
@@ -77,8 +77,8 @@
         <p class="mb-3">
           Are you sure you want to delete the
           <strong>{{ deleteModal.type === 'monitoring' ? 'Monitoring' : 'Report' }}</strong>
-          for Request No: <strong>{{ deleteModal.requestNo }}</strong
-          >? <br /><span style="color: #c00; font-size: 12px">This action cannot be undone.</span>
+          for Request No: <strong>{{ deleteModal.requestNo }}</strong>?
+          <br /><span style="color: #c00; font-size: 12px">This action cannot be undone.</span>
         </p>
         <div class="d-flex gap-2 justify-content-center">
           <button class="btn btn-danger" @click="executeDelete">Yes, Delete</button>
@@ -96,25 +96,13 @@
         <input v-model="monitoring.plNo" class="form-control mb-2 auto-field" readonly />
 
         <label class="form-label">Equipment Name</label>
-        <input
-          v-model="monitoring.equipmentName"
-          class="form-control mb-2"
-          placeholder="Equipment Name"
-        />
+        <input v-model="monitoring.equipmentName" class="form-control mb-2" placeholder="Equipment Name" />
 
         <label class="form-label">Equipment No</label>
-        <input
-          v-model="monitoring.equipmentNo"
-          class="form-control mb-2"
-          placeholder="Equipment No"
-        />
+        <input v-model="monitoring.equipmentNo" class="form-control mb-2" placeholder="Equipment No" />
 
         <label class="form-label">Standard / Spec</label>
-        <input
-          v-model="monitoring.standard"
-          class="form-control mb-2"
-          placeholder="e.g. Spec As per M210216..."
-        />
+        <input v-model="monitoring.standard" class="form-control mb-2" placeholder="e.g. Spec As per M210216..." />
 
         <label class="form-label">Request Date</label>
         <input type="date" v-model="monitoring.requestDate" class="form-control mb-2" />
@@ -129,18 +117,10 @@
         <input v-model="monitoring.targetCycle" class="form-control mb-2" placeholder="Target" />
 
         <label class="form-label">Initial Hourmeter / Counter</label>
-        <input
-          v-model="monitoring.initialReading"
-          class="form-control mb-2"
-          placeholder="Initial"
-        />
+        <input v-model="monitoring.initialReading" class="form-control mb-2" placeholder="Initial" />
 
         <label class="form-label">Current Reading</label>
-        <input
-          v-model="monitoring.currentReading"
-          class="form-control mb-2"
-          placeholder="Current"
-        />
+        <input v-model="monitoring.currentReading" class="form-control mb-2" placeholder="Current" />
 
         <label class="form-label">Balance (Yet to Cover)</label>
         <input :value="yetToCover" class="form-control mb-2 auto-field" readonly />
@@ -149,53 +129,29 @@
         <input v-model="monitoring.purpose" class="form-control mb-2" placeholder="Purpose" />
 
         <label class="form-label">Tryout Details / Remarks</label>
-        <textarea
-          v-model="monitoring.remarks"
-          class="form-control mb-2"
-          rows="2"
-          placeholder="Tryout details..."
-        ></textarea>
+        <textarea v-model="monitoring.remarks" class="form-control mb-2" rows="2" placeholder="Tryout details..."></textarea>
 
         <label class="form-label">Acceptance Criteria</label>
-        <textarea
-          v-model="monitoring.acceptanceCriteria"
-          class="form-control mb-2"
-          rows="2"
-          placeholder="Acceptance criteria..."
-        ></textarea>
+        <textarea v-model="monitoring.acceptanceCriteria" class="form-control mb-2" rows="2" placeholder="Acceptance criteria..."></textarea>
 
         <label class="form-label">Test Results</label>
-        <textarea
-          v-model="monitoring.testResults"
-          class="form-control mb-2"
-          rows="2"
-          placeholder="Test results..."
-        ></textarea>
+        <textarea v-model="monitoring.testResults" class="form-control mb-2" rows="2" placeholder="Test results..."></textarea>
 
         <label class="form-label">Responsibility</label>
-        <input
-          v-model="monitoring.responsibility"
-          class="form-control mb-2"
-          placeholder="Responsibility"
-        />
+        <input v-model="monitoring.responsibility" class="form-control mb-2" placeholder="Responsibility" />
 
         <label class="form-label">Requested By</label>
-        <input
-          v-model="monitoring.requestedBy"
-          class="form-control mb-2"
-          placeholder="Requested By"
-        />
+        <input v-model="monitoring.requestedBy" class="form-control mb-2" placeholder="Requested By" />
 
         <div class="d-flex gap-2 mt-2 flex-wrap">
           <button class="btn btn-info" @click="printSheet('monitoring')">🖨 Print Datasheet</button>
           <button class="btn btn-success" @click="submitDaily">
             {{ monitoringEditMode ? 'Update' : 'Save' }}
           </button>
-          <!-- 🔥 DELETE INSIDE MODAL (only in edit mode) -->
           <button
             v-if="monitoringEditMode"
             class="btn btn-danger"
-            @click="confirmDeleteMonitoring({ requestNo: monitoring.requestNo })"
+            @click="confirmDeleteMonitoring(monitoring.requestNo)"
           >
             🗑 Delete
           </button>
@@ -257,12 +213,7 @@
         <input v-model="report.testName" class="form-control mb-2 auto-field" readonly />
 
         <label class="form-label">Special Features</label>
-        <textarea
-          v-model="report.special"
-          class="form-control mb-2 auto-field"
-          rows="2"
-          readonly
-        ></textarea>
+        <textarea v-model="report.special" class="form-control mb-2 auto-field" rows="2" readonly></textarea>
 
         <label class="form-label">Purpose of the Test</label>
         <input v-model="report.category" class="form-control mb-2 auto-field" readonly />
@@ -282,12 +233,7 @@
         <input v-model="report.spec" class="form-control mb-2 auto-field" readonly />
 
         <label class="form-label">Spec / Test Details</label>
-        <textarea
-          v-model="report.testDetails"
-          class="form-control mb-2 auto-field"
-          rows="3"
-          readonly
-        ></textarea>
+        <textarea v-model="report.testDetails" class="form-control mb-2 auto-field" rows="3" readonly></textarea>
 
         <!-- AUTO-FILLED FROM MONITORING -->
         <div class="section-header mt-3">📘 Monitoring Details (Auto-filled)</div>
@@ -325,28 +271,13 @@
         <div class="section-header mt-3">✏️ Manual Entry</div>
 
         <label class="form-label">Acceptance Criteria</label>
-        <textarea
-          v-model="report.criteria"
-          class="form-control mb-2"
-          rows="3"
-          placeholder="Enter acceptance criteria..."
-        ></textarea>
+        <textarea v-model="report.criteria" class="form-control mb-2" rows="3" placeholder="Enter acceptance criteria..."></textarea>
 
         <label class="form-label">Observation</label>
-        <textarea
-          v-model="report.observation"
-          class="form-control mb-2"
-          rows="3"
-          placeholder="Enter observation..."
-        ></textarea>
+        <textarea v-model="report.observation" class="form-control mb-2" rows="3" placeholder="Enter observation..."></textarea>
 
         <label class="form-label">Conclusion</label>
-        <textarea
-          v-model="report.conclusion"
-          class="form-control mb-2"
-          rows="3"
-          placeholder="Enter conclusion..."
-        ></textarea>
+        <textarea v-model="report.conclusion" class="form-control mb-2" rows="3" placeholder="Enter conclusion..."></textarea>
 
         <div class="row g-2 mb-2">
           <div class="col-4">
@@ -374,26 +305,12 @@
         <div class="section-header">📎 Attachments</div>
 
         <label class="form-label">Post Data Upload (Report Attachment)</label>
-        <input
-          type="file"
-          @change="onPostDataChange"
-          class="form-control mb-1"
-          accept=".pdf,.xls,.xlsx,.doc,.docx,.csv"
-        />
+        <input type="file" @change="onPostDataChange" class="form-control mb-1" accept=".pdf,.xls,.xlsx,.doc,.docx,.csv" />
         <div v-if="report.postDataName" class="file-tag mb-2">📄 {{ report.postDataName }}</div>
 
         <label class="form-label">Failure Photos Upload</label>
-        <input
-          type="file"
-          @change="onFailurePhotosChange"
-          class="form-control mb-2"
-          accept="image/*"
-          multiple
-        />
-        <div
-          v-if="report.failurePhotos && report.failurePhotos.length"
-          class="photo-preview-row mb-2"
-        >
+        <input type="file" @change="onFailurePhotosChange" class="form-control mb-2" accept="image/*" multiple />
+        <div v-if="report.failurePhotos && report.failurePhotos.length" class="photo-preview-row mb-2">
           <div v-for="(p, idx) in report.failurePhotos" :key="idx" class="photo-thumb-wrap">
             <img :src="p" class="photo-thumb" />
             <button class="thumb-remove" @click="removePhoto(idx)">×</button>
@@ -404,30 +321,12 @@
         <div class="section-header mt-3">✍️ Signatures (embedded in printed report)</div>
 
         <label class="form-label">Reported By – Signature Image</label>
-        <input
-          type="file"
-          @change="onSignReportedChange"
-          class="form-control mb-1"
-          accept="image/*"
-        />
-        <img
-          v-if="report.signReportedPreview"
-          :src="report.signReportedPreview"
-          class="sig-preview mb-2"
-        />
+        <input type="file" @change="onSignReportedChange" class="form-control mb-1" accept="image/*" />
+        <img v-if="report.signReportedPreview" :src="report.signReportedPreview" class="sig-preview mb-2" />
 
         <label class="form-label">Approved By – Signature Image</label>
-        <input
-          type="file"
-          @change="onSignApprovedChange"
-          class="form-control mb-1"
-          accept="image/*"
-        />
-        <img
-          v-if="report.signApprovedPreview"
-          :src="report.signApprovedPreview"
-          class="sig-preview mb-2"
-        />
+        <input type="file" @change="onSignApprovedChange" class="form-control mb-1" accept="image/*" />
+        <img v-if="report.signApprovedPreview" :src="report.signApprovedPreview" class="sig-preview mb-2" />
 
         <!-- ACTIONS -->
         <div class="d-flex gap-2 mt-3 flex-wrap">
@@ -442,11 +341,10 @@
           <button class="btn btn-success" @click="submitReport">
             {{ reportEditMode ? 'Update' : 'Save' }}
           </button>
-          <!-- 🔥 DELETE INSIDE MODAL (only in edit mode) -->
           <button
             v-if="reportEditMode"
             class="btn btn-danger"
-            @click="confirmDeleteReport({ requestNo: report.reqNo })"
+            @click="confirmDeleteReport(report.reqNo)"
           >
             🗑 Delete
           </button>
@@ -494,16 +392,19 @@ export default {
       report: null,
       reportEditMode: false,
 
-      // In-memory caches (keyed by requestNo)
+      // ✅ FIX: Flat arrays instead of objects — Vue 2 reactive-safe
+      monitoringKeys: [],   // list of requestNos that have monitoring saved
+      reportKeys: [],       // list of requestNos that have report saved
+
+      // In-memory caches (keyed by requestNo) — NOT used for v-if directly
       monitoringCache: {},
       reportCache: {},
 
-      // 🔥 DELETE CONFIRM MODAL STATE
       deleteModal: {
         show: false,
-        type: '', // 'monitoring' | 'report'
+        type: '',        // 'monitoring' | 'report'
         requestNo: '',
-        dbId: null, // backend DB id (if available)
+        dbId: null,
       },
     }
   },
@@ -519,7 +420,8 @@ export default {
     reportBalance() {
       if (!this.report) return 0
       return (
-        (parseFloat(this.report.targetCycle) || 0) - (parseFloat(this.report.currentReading) || 0)
+        (parseFloat(this.report.targetCycle) || 0) -
+        (parseFloat(this.report.currentReading) || 0)
       )
     },
   },
@@ -530,6 +432,33 @@ export default {
   },
 
   methods: {
+    // ── Reactive key helpers ──────────────────────────────────
+    // Using flat arrays so Vue 2 can react to push/splice
+    hasMonitoring(requestNo) {
+      return this.monitoringKeys.includes(requestNo)
+    },
+    hasReport(requestNo) {
+      return this.reportKeys.includes(requestNo)
+    },
+    addMonitoringKey(requestNo) {
+      if (!this.monitoringKeys.includes(requestNo)) {
+        this.monitoringKeys.push(requestNo)
+      }
+    },
+    removeMonitoringKey(requestNo) {
+      const idx = this.monitoringKeys.indexOf(requestNo)
+      if (idx !== -1) this.monitoringKeys.splice(idx, 1)
+    },
+    addReportKey(requestNo) {
+      if (!this.reportKeys.includes(requestNo)) {
+        this.reportKeys.push(requestNo)
+      }
+    },
+    removeReportKey(requestNo) {
+      const idx = this.reportKeys.indexOf(requestNo)
+      if (idx !== -1) this.reportKeys.splice(idx, 1)
+    },
+
     // ── Load requests ─────────────────────────────────────────
     async load() {
       const res = await axios.get(`${API}/requests`)
@@ -540,9 +469,16 @@ export default {
     loadCaches() {
       try {
         const mc = localStorage.getItem('monitoringCache')
-        if (mc) this.monitoringCache = JSON.parse(mc)
+        if (mc) {
+          this.monitoringCache = JSON.parse(mc)
+          // ✅ Rebuild reactive key arrays from cache
+          this.monitoringKeys = Object.keys(this.monitoringCache)
+        }
         const rc = localStorage.getItem('reportCache')
-        if (rc) this.reportCache = JSON.parse(rc)
+        if (rc) {
+          this.reportCache = JSON.parse(rc)
+          this.reportKeys = Object.keys(this.reportCache)
+        }
       } catch (e) {
         console.warn('Cache load error', e)
       }
@@ -580,31 +516,38 @@ export default {
         testResults: '',
         responsibility: 'Admin',
         requestedBy: r.userName || 'User',
+        dbId: null,
       }
     },
 
     editMonitoring(r) {
       this.monitoringEditMode = true
-      this.monitoring = { ...this.monitoringCache[r.requestNo] }
+      // ✅ Deep clone so edits don't mutate cache directly
+      this.monitoring = JSON.parse(JSON.stringify(this.monitoringCache[r.requestNo]))
     },
 
     async submitDaily() {
       try {
-        this.monitoringCache[this.monitoring.requestNo] = { ...this.monitoring }
-        this.saveCaches()
+        const requestNo = this.monitoring.requestNo
 
-        if (this.monitoringEditMode && this.monitoringCache[this.monitoring.requestNo]?.dbId) {
+        // ✅ FIX: Grab existing dbId BEFORE overwriting cache
+        const existingDbId = this.monitoringCache[requestNo]?.dbId || this.monitoring.dbId || null
+
+        if (this.monitoringEditMode && existingDbId) {
           // UPDATE existing record
-          const id = this.monitoringCache[this.monitoring.requestNo].dbId
-          await axios.put(`${API}/dailyupdates/${id}`, this.monitoring)
+          await axios.put(`${API}/dailyupdates/${existingDbId}`, this.monitoring)
+          // Preserve dbId in saved object
+          this.monitoringCache[requestNo] = { ...this.monitoring, dbId: existingDbId }
         } else {
-          // CREATE new record — save returned id into cache
+          // CREATE new record
           const res = await axios.post(`${API}/dailyupdates`, this.monitoring)
-          if (res.data?.data?.id) {
-            this.monitoringCache[this.monitoring.requestNo].dbId = res.data.data.id
-            this.saveCaches()
-          }
+          const newId = res.data?.data?.id || res.data?.id || null
+          this.monitoringCache[requestNo] = { ...this.monitoring, dbId: newId }
         }
+
+        this.saveCaches()
+        // ✅ Reactively mark this requestNo as having monitoring
+        this.addMonitoringKey(requestNo)
 
         alert(this.monitoringEditMode ? '✅ Monitoring updated!' : '✅ Monitoring saved!')
         this.monitoring = null
@@ -614,22 +557,23 @@ export default {
       }
     },
 
-    // 🔥 CONFIRM DELETE MONITORING
-    confirmDeleteMonitoring(r) {
-      const cached = this.monitoringCache[r.requestNo]
+    // ── Confirm delete monitoring ─────────────────────────────
+    confirmDeleteMonitoring(requestNo) {
+      const cached = this.monitoringCache[requestNo]
       this.deleteModal = {
         show: true,
         type: 'monitoring',
-        requestNo: r.requestNo,
+        requestNo,
         dbId: cached?.dbId || null,
       }
-      // Close modal if open
+      // Close monitoring modal if open
       this.monitoring = null
     },
 
     // ─────────────── REPORT ───────────────────────────────────
     openReport(r) {
       this.reportEditMode = false
+      // ✅ Always pull latest monitoring data from cache when opening report
       const mon = this.monitoringCache[r.requestNo] || {}
 
       this.report = {
@@ -665,33 +609,34 @@ export default {
         failurePhotos: [],
         signReportedPreview: null,
         signApprovedPreview: null,
+        dbId: null,
       }
     },
 
     editReport(r) {
       this.reportEditMode = true
-      this.report = { ...this.reportCache[r.requestNo] }
+      // ✅ Deep clone so edits don't mutate cache directly
+      this.report = JSON.parse(JSON.stringify(this.reportCache[r.requestNo]))
     },
 
-    // 🔥 CONFIRM DELETE REPORT
-    confirmDeleteReport(r) {
-      const cached = this.reportCache[r.requestNo]
+    // ── Confirm delete report ─────────────────────────────────
+    // ✅ FIX: param is now always requestNo (string), not a row object
+    confirmDeleteReport(requestNo) {
+      const cached = this.reportCache[requestNo]
       this.deleteModal = {
         show: true,
         type: 'report',
-        requestNo: r.requestNo,
+        requestNo,
         dbId: cached?.dbId || null,
       }
-      // Close modal if open
+      // Close report modal if open
       this.report = null
     },
 
-    // 🔥 EXECUTE DELETE — called from confirm modal
+    // ── Execute delete ────────────────────────────────────────
     async executeDelete() {
       const { type, requestNo, dbId } = this.deleteModal
-
       try {
-        // ── Delete from backend (if we have the DB id) ────────
         if (dbId) {
           if (type === 'monitoring') {
             await axios.delete(`${API}/dailyupdates/${dbId}`)
@@ -700,16 +645,18 @@ export default {
           }
         }
 
-        // ── Delete from local cache ───────────────────────────
         if (type === 'monitoring') {
           delete this.monitoringCache[requestNo]
+          this.saveCaches()
+          // ✅ Reactively remove from key array
+          this.removeMonitoringKey(requestNo)
         } else {
           delete this.reportCache[requestNo]
+          this.saveCaches()
+          this.removeReportKey(requestNo)
         }
 
-        this.saveCaches()
         this.deleteModal.show = false
-
         alert(`🗑 ${type === 'monitoring' ? 'Monitoring' : 'Report'} deleted successfully!`)
       } catch (err) {
         console.error('❌ Delete error:', err)
@@ -751,27 +698,31 @@ export default {
 
     async submitReport() {
       try {
-        this.reportCache[this.report.reqNo] = { ...this.report }
-        this.saveCaches()
+        const reqNo = this.report.reqNo
 
-        if (this.reportEditMode && this.reportCache[this.report.reqNo]?.dbId) {
+        // ✅ FIX: Grab existing dbId BEFORE overwriting cache
+        const existingDbId = this.reportCache[reqNo]?.dbId || this.report.dbId || null
+
+        if (this.reportEditMode && existingDbId) {
           // UPDATE
-          const id = this.reportCache[this.report.reqNo].dbId
-          await axios.put(`${API}/reports/${id}`, {
+          await axios.put(`${API}/reports/${existingDbId}`, {
             ...this.report,
             reportBalance: this.reportBalance,
           })
+          this.reportCache[reqNo] = { ...this.report, dbId: existingDbId }
         } else {
-          // CREATE — save returned id into cache
+          // CREATE
           const res = await axios.post(`${API}/reports`, {
             ...this.report,
             reportBalance: this.reportBalance,
           })
-          if (res.data?.data?.id) {
-            this.reportCache[this.report.reqNo].dbId = res.data.data.id
-            this.saveCaches()
-          }
+          const newId = res.data?.data?.id || res.data?.id || null
+          this.reportCache[reqNo] = { ...this.report, dbId: newId }
         }
+
+        this.saveCaches()
+        // ✅ Reactively mark this requestNo as having a report
+        this.addReportKey(reqNo)
 
         alert(this.reportEditMode ? '✅ Report updated!' : '✅ Report saved!')
         this.report = null
@@ -802,6 +753,7 @@ export default {
         const sigA = d.signApprovedPreview
           ? `${d.approvedBy || ''}<br/><img src="${d.signApprovedPreview}" style="height:44px;margin-top:3px;"/>`
           : d.approvedBy || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'
+
         const photoImgs = (d.failurePhotos || [])
           .map(
             (src) =>

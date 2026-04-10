@@ -43,21 +43,21 @@ router.get("/all", async (req, res, next) => {
   }
 });
 
-// ================= GET BY ID =================
-router.get("/:id", async (req, res, next) => {
+// ================= GET BY REQUEST NO =================
+// 🔥 MUST be BEFORE /:id to avoid "by-request" being treated as an id
+router.get("/by-request/:requestNo", async (req, res, next) => {
   try {
-    await controller.getDailyUpdateById(req, res);
+    await controller.getDailyUpdateByRequestNo(req, res);
   } catch (err) {
     console.error("ROUTE ERROR:", err);
     next(err);
   }
 });
 
-// ================= GET BY REQUEST NO =================
-// 🔥 ADDED — used by frontend edit mode lookup
-router.get("/by-request/:requestNo", async (req, res, next) => {
+// ================= GET BY ID =================
+router.get("/:id", async (req, res, next) => {
   try {
-    await controller.getDailyUpdateByRequestNo(req, res);
+    await controller.getDailyUpdateById(req, res);
   } catch (err) {
     console.error("ROUTE ERROR:", err);
     next(err);
@@ -69,9 +69,7 @@ router.post("/", upload.single("photo"), async (req, res, next) => {
   try {
     console.log("📥 BODY:", req.body);
     console.log("📎 FILE:", req.file);
-
     await controller.createDailyUpdate(req, res);
-
   } catch (err) {
     console.error("ROUTE ERROR:", err);
     next(err);
@@ -79,14 +77,11 @@ router.post("/", upload.single("photo"), async (req, res, next) => {
 });
 
 // ================= UPDATE DAILY UPDATE =================
-// 🔥 ADDED — Edit Monitoring Mode
 router.put("/:id", upload.single("photo"), async (req, res, next) => {
   try {
     console.log("📝 UPDATE BODY:", req.body);
     console.log("📎 UPDATE FILE:", req.file);
-
     await controller.updateDailyUpdate(req, res);
-
   } catch (err) {
     console.error("ROUTE ERROR:", err);
     next(err);
@@ -94,7 +89,6 @@ router.put("/:id", upload.single("photo"), async (req, res, next) => {
 });
 
 // ================= DELETE DAILY UPDATE =================
-// 🔥 ADDED — Delete Monitoring Record
 router.delete("/:id", async (req, res, next) => {
   try {
     await controller.deleteDailyUpdate(req, res);

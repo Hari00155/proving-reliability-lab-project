@@ -1,10 +1,12 @@
 const { Report } = require("../models");
 
+// ─────────────────────────────────────────────────────────────
+//  CREATE REPORT
+// ─────────────────────────────────────────────────────────────
 exports.createReport = async (req, res) => {
   try {
     console.log("📥 BODY KEYS:", Object.keys(req.body));
 
-    // ✅ REPORT NUMBER VALIDATION
     if (!req.body.reportNo) {
       return res.status(400).json({
         success: false,
@@ -12,74 +14,71 @@ exports.createReport = async (req, res) => {
       });
     }
 
-    // ✅ SAFE DATA BUILD — all fields from updated model
     const data = {
-
-      // ── Report Number ───────────────────────────────────
+      // ── Report Number ──────────────────────────────────
       reportNo: req.body.reportNo,
 
-      // ── Auto-filled from Request ────────────────────────
-      plNo:          req.body.plNo         || "",
-      reqNo:         req.body.reqNo        || "",
-      partNo:        req.body.partNo       || "",
-      date:          req.body.date         || "",
-      description:   req.body.description  || "",
-      platformCode:  req.body.platformCode || "",
-      productCode:   req.body.productCode  || "",
-      customer:      req.body.customer     || "",
-      component:     req.body.component    || "",   // 🔥 ADDED
-      samples:       req.body.samples      || "",
-      testType:      req.body.testType     || "",
-      category:      req.body.category     || "",
-      testDetails:   req.body.testDetails  || "",
-      special:       req.body.special      || "",
-      testName:      req.body.testName     || "",
-      spec:          req.body.spec         || "",   // Test Equipment
+      // ── Auto-filled from Request ───────────────────────
+      plNo:          req.body.plNo          || "",
+      reqNo:         req.body.reqNo         || "",
+      partNo:        req.body.partNo        || "",
+      date:          req.body.date          || "",
+      description:   req.body.description   || "",
+      platformCode:  req.body.platformCode  || "",
+      productCode:   req.body.productCode   || "",
+      customer:      req.body.customer      || "",
+      component:     req.body.component     || "",
+      samples:       req.body.samples       || "",
+      testType:      req.body.testType      || "",
+      category:      req.body.category      || "",
+      testDetails:   req.body.testDetails   || "",
+      special:       req.body.special       || "",
+      testName:      req.body.testName      || "",
+      spec:          req.body.spec          || "",
 
-      // ── Auto-filled from Monitoring ─────────────────────
-      equipmentName:  req.body.equipmentName  || "",  // 🔥 ADDED
-      equipmentNo:    req.body.equipmentNo    || "",  // 🔥 ADDED
-      initialReading: req.body.initialReading || "",  // 🔥 ADDED
-      currentReading: req.body.currentReading || "",  // 🔥 ADDED
-      targetCycle:    req.body.targetCycle    || "",  // 🔥 ADDED
-      reportBalance:  parseFloat(req.body.reportBalance) || 0, // 🔥 ADDED
+      // ── Auto-filled from Monitoring ────────────────────
+      equipmentName:  req.body.equipmentName  || "",
+      equipmentNo:    req.body.equipmentNo    || "",
+      initialReading: req.body.initialReading || "",
+      currentReading: req.body.currentReading || "",
+      targetCycle:    req.body.targetCycle    || "",
+      reportBalance:  parseFloat(req.body.reportBalance) || 0,
 
-      // ── Manual Entry ────────────────────────────────────
+      // ── Manual Entry ───────────────────────────────────
       criteria:    req.body.criteria    || "",
       observation: req.body.observation || "",
       conclusion:  req.body.conclusion  || "",
       result:      req.body.result      || "Passed",
 
-      // ── People ──────────────────────────────────────────
+      // ── People ────────────────────────────────────────
       reportedBy:  req.body.reportedBy  || "Admin",
       approvedBy:  req.body.approvedBy  || "Superadmin",
-      requestedBy: req.body.requestedBy || "",       // 🔥 ADDED
+      requestedBy: req.body.requestedBy || "",
 
-      // ── Signatures (base64) ─────────────────────────────
-      signatureReported: req.body.signReportedPreview || null, // 🔥 base64
-      signatureApproved: req.body.signApprovedPreview || null, // 🔥 base64
+      // ── Signatures (base64) ───────────────────────────
+      signatureReported: req.body.signReportedPreview || null,
+      signatureApproved: req.body.signApprovedPreview || null,
 
-      // ── Attachments (base64) ────────────────────────────
-      postDataBase64: req.body.postDataBase64 || null, // 🔥 ADDED
-      postDataName:   req.body.postDataName   || null, // 🔥 ADDED
+      // ── Attachments (base64) ──────────────────────────
+      postDataBase64: req.body.postDataBase64 || null,
+      postDataName:   req.body.postDataName   || null,
 
-      // ── Failure Photos (array of base64) ────────────────
-      // Model getter/setter handles JSON.parse/stringify
+      // ── Failure Photos (array of base64) ──────────────
       failurePhotos: Array.isArray(req.body.failurePhotos)
         ? req.body.failurePhotos
-        : [],                                          // 🔥 ADDED
+        : []
     };
 
     console.log("✅ SAVING REPORT:", data.reportNo);
 
-    // ✅ SAVE TO DB
     const saved = await Report.create(data);
 
+    // 🔥 CRITICAL FIX: return { data: { id } } — frontend reads res.data?.data?.id
     return res.status(201).json({
       success: true,
       message: "✅ Report Saved Successfully",
       reportNo: saved.reportNo,
-      data: saved
+      data: { id: saved.id }
     });
 
   } catch (err) {
@@ -116,10 +115,7 @@ exports.getReportById = async (req, res) => {
   try {
     const report = await Report.findByPk(req.params.id);
     if (!report) {
-      return res.status(404).json({
-        success: false,
-        error: "Report not found"
-      });
+      return res.status(404).json({ success: false, error: "Report not found" });
     }
     return res.json({ success: true, data: report });
   } catch (err) {
@@ -132,7 +128,7 @@ exports.getReportById = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────────────────────
-//  GET REPORT BY reportNo (used by frontend edit flow)
+//  GET REPORT BY reportNo
 // ─────────────────────────────────────────────────────────────
 exports.getReportByReportNo = async (req, res) => {
   try {
@@ -140,10 +136,7 @@ exports.getReportByReportNo = async (req, res) => {
       where: { reportNo: req.params.reportNo }
     });
     if (!report) {
-      return res.status(404).json({
-        success: false,
-        error: "Report not found"
-      });
+      return res.status(404).json({ success: false, error: "Report not found" });
     }
     return res.json({ success: true, data: report });
   } catch (err) {
@@ -156,19 +149,15 @@ exports.getReportByReportNo = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────────────────────
-//  UPDATE REPORT (Edit Mode)
+//  UPDATE REPORT
 // ─────────────────────────────────────────────────────────────
 exports.updateReport = async (req, res) => {
   try {
     const report = await Report.findByPk(req.params.id);
     if (!report) {
-      return res.status(404).json({
-        success: false,
-        error: "Report not found"
-      });
+      return res.status(404).json({ success: false, error: "Report not found" });
     }
 
-    // ✅ Only update allowed editable fields
     const updatable = {
       // Monitoring fields (may change)
       equipmentName:  req.body.equipmentName  || report.equipmentName,
@@ -178,7 +167,7 @@ exports.updateReport = async (req, res) => {
       targetCycle:    req.body.targetCycle    || report.targetCycle,
       reportBalance:  parseFloat(req.body.reportBalance) || report.reportBalance,
 
-      // Manual entry fields
+      // Manual entry
       criteria:    req.body.criteria    || report.criteria,
       observation: req.body.observation || report.observation,
       conclusion:  req.body.conclusion  || report.conclusion,
@@ -198,16 +187,17 @@ exports.updateReport = async (req, res) => {
       // Failure photos — replace entire array if new one sent
       failurePhotos: Array.isArray(req.body.failurePhotos)
         ? req.body.failurePhotos
-        : report.failurePhotos,
+        : report.failurePhotos
     };
 
     await report.update(updatable);
 
+    // 🔥 CRITICAL FIX: return { data: { id } } — frontend reads res.data?.data?.id
     return res.json({
       success: true,
       message: "✅ Report Updated Successfully",
       reportNo: report.reportNo,
-      data: report
+      data: { id: report.id }
     });
 
   } catch (err) {
@@ -226,10 +216,7 @@ exports.deleteReport = async (req, res) => {
   try {
     const report = await Report.findByPk(req.params.id);
     if (!report) {
-      return res.status(404).json({
-        success: false,
-        error: "Report not found"
-      });
+      return res.status(404).json({ success: false, error: "Report not found" });
     }
     await report.destroy();
     return res.json({
