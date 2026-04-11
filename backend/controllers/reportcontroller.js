@@ -1,233 +1,113 @@
-const { Report } = require("../models");
+// backend/controllers/reportcontroller.js
+'use strict'
+
+const db = require('../models')
+const Report = db.Report
+
+const ok  = (res, data, status = 200) => res.status(status).json(data)
+const fail = (res, err, msg = 'Server error', status = 500) => {
+  console.error(`[ReportCtrl] ${msg}:`, err.message || err)
+  return res.status(status).json({ success: false, message: msg, error: err.message })
+}
+
+// ── Helper: parse failurePhotos JSON string → array ──────────
+function parsePhotos(row) {
+  const plain = typeof row.toJSON === 'function' ? row.toJSON() : { ...row }
+  if (typeof plain.failurePhotos === 'string' && plain.failurePhotos) {
+    try { plain.failurePhotos = JSON.parse(plain.failurePhotos) } catch (_) {}
+  }
+  if (!Array.isArray(plain.failurePhotos)) plain.failurePhotos = []
+  return plain
+}
 
 // ─────────────────────────────────────────────────────────────
-//  CREATE REPORT
+//  GET  /api/reports
+//  Used by ReportPrint.vue to search all saved reports
 // ─────────────────────────────────────────────────────────────
-exports.createReport = async (req, res) => {
+exports.getAll = async (req, res) => {
   try {
-    console.log("📥 BODY KEYS:", Object.keys(req.body));
+    const rows = await Report.findAll({ order: [['createdAt', 'DESC']] })
+    ok(res, rows.map(parsePhotos))
+  } catch (e) {
+    fail(res, e, 'Failed to fetch reports')
+  }
+}
 
-    if (!req.body.reportNo) {
-      return res.status(400).json({
-        success: false,
-        error: "Report Number missing"
-      });
+// ─────────────────────────────────────────────────────────────
+//  GET  /api/reports/:id
+// ─────────────────────────────────────────────────────────────
+exports.getOne = async (req, res) => {
+  try {
+    const row = await Report.findByPk(req.params.id)
+    if (!row) return res.status(404).json({ success: false, message: 'Report not found' })
+    ok(res, parsePhotos(row))
+  } catch (e) {
+    fail(res, e, 'Failed to fetch report')
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+//  POST /api/reports
+//  Body: all report fields
+//  failurePhotos arrives as JS array (JSON body) → serialise
+//  to string for MySQL storage
+// ─────────────────────────────────────────────────────────────
+exports.create = async (req, res) => {
+  try {
+    const body = { ...req.body }
+    delete body.id
+    delete body.createdAt
+    delete body.updatedAt
+
+    // Serialise photos array → JSON string
+    if (Array.isArray(body.failurePhotos)) {
+      body.failurePhotos = JSON.stringify(body.failurePhotos)
     }
 
-    const data = {
-      // ── Report Number ──────────────────────────────────
-      reportNo: req.body.reportNo,
+    const row  = await Report.create(body)
+    const data = parsePhotos(row)
 
-      // ── Auto-filled from Request ───────────────────────
-      plNo:          req.body.plNo          || "",
-      reqNo:         req.body.reqNo         || "",
-      partNo:        req.body.partNo        || "",
-      date:          req.body.date          || "",
-      description:   req.body.description   || "",
-      platformCode:  req.body.platformCode  || "",
-      productCode:   req.body.productCode   || "",
-      customer:      req.body.customer      || "",
-      component:     req.body.component     || "",
-      samples:       req.body.samples       || "",
-      testType:      req.body.testType      || "",
-      category:      req.body.category      || "",
-      testDetails:   req.body.testDetails   || "",
-      special:       req.body.special       || "",
-      testName:      req.body.testName      || "",
-      spec:          req.body.spec          || "",
-
-      // ── Auto-filled from Monitoring ────────────────────
-      equipmentName:  req.body.equipmentName  || "",
-      equipmentNo:    req.body.equipmentNo    || "",
-      initialReading: req.body.initialReading || "",
-      currentReading: req.body.currentReading || "",
-      targetCycle:    req.body.targetCycle    || "",
-      reportBalance:  parseFloat(req.body.reportBalance) || 0,
-
-      // ── Manual Entry ───────────────────────────────────
-      criteria:    req.body.criteria    || "",
-      observation: req.body.observation || "",
-      conclusion:  req.body.conclusion  || "",
-      result:      req.body.result      || "Passed",
-
-      // ── People ────────────────────────────────────────
-      reportedBy:  req.body.reportedBy  || "Admin",
-      approvedBy:  req.body.approvedBy  || "Superadmin",
-      requestedBy: req.body.requestedBy || "",
-
-      // ── Signatures (base64) ───────────────────────────
-      signatureReported: req.body.signReportedPreview || null,
-      signatureApproved: req.body.signApprovedPreview || null,
-
-      // ── Attachments (base64) ──────────────────────────
-      postDataBase64: req.body.postDataBase64 || null,
-      postDataName:   req.body.postDataName   || null,
-
-      // ── Failure Photos (array of base64) ──────────────
-      failurePhotos: Array.isArray(req.body.failurePhotos)
-        ? req.body.failurePhotos
-        : []
-    };
-
-    console.log("✅ SAVING REPORT:", data.reportNo);
-
-    const saved = await Report.create(data);
-
-    // 🔥 CRITICAL FIX: return { data: { id } } — frontend reads res.data?.data?.id
-    return res.status(201).json({
-      success: true,
-      message: "✅ Report Saved Successfully",
-      reportNo: saved.reportNo,
-      data: { id: saved.id }
-    });
-
-  } catch (err) {
-    console.error("❌ REPORT CREATE ERROR:", err);
-    return res.status(500).json({
-      success: false,
-      error: err.message || "Server Error"
-    });
+    // Return id at top level so Vue can store it as dbId
+    ok(res, { success: true, message: 'Report created', data, id: row.id }, 201)
+  } catch (e) {
+    fail(res, e, 'Failed to create report')
   }
-};
+}
 
 // ─────────────────────────────────────────────────────────────
-//  GET ALL REPORTS
+//  PUT  /api/reports/:id
 // ─────────────────────────────────────────────────────────────
-exports.getReports = async (req, res) => {
+exports.update = async (req, res) => {
   try {
-    const reports = await Report.findAll({
-      order: [["createdAt", "DESC"]]
-    });
-    return res.json({ success: true, data: reports });
-  } catch (err) {
-    console.error("❌ REPORT FETCH ERROR:", err);
-    return res.status(500).json({
-      success: false,
-      error: err.message || "Server Error"
-    });
-  }
-};
+    const row = await Report.findByPk(req.params.id)
+    if (!row) return res.status(404).json({ success: false, message: 'Report not found' })
 
-// ─────────────────────────────────────────────────────────────
-//  GET SINGLE REPORT BY ID
-// ─────────────────────────────────────────────────────────────
-exports.getReportById = async (req, res) => {
-  try {
-    const report = await Report.findByPk(req.params.id);
-    if (!report) {
-      return res.status(404).json({ success: false, error: "Report not found" });
-    }
-    return res.json({ success: true, data: report });
-  } catch (err) {
-    console.error("❌ REPORT FETCH BY ID ERROR:", err);
-    return res.status(500).json({
-      success: false,
-      error: err.message || "Server Error"
-    });
-  }
-};
+    const body = { ...req.body }
+    delete body.id
+    delete body.createdAt
+    delete body.updatedAt
 
-// ─────────────────────────────────────────────────────────────
-//  GET REPORT BY reportNo
-// ─────────────────────────────────────────────────────────────
-exports.getReportByReportNo = async (req, res) => {
-  try {
-    const report = await Report.findOne({
-      where: { reportNo: req.params.reportNo }
-    });
-    if (!report) {
-      return res.status(404).json({ success: false, error: "Report not found" });
-    }
-    return res.json({ success: true, data: report });
-  } catch (err) {
-    console.error("❌ REPORT FETCH BY REPORT NO ERROR:", err);
-    return res.status(500).json({
-      success: false,
-      error: err.message || "Server Error"
-    });
-  }
-};
-
-// ─────────────────────────────────────────────────────────────
-//  UPDATE REPORT
-// ─────────────────────────────────────────────────────────────
-exports.updateReport = async (req, res) => {
-  try {
-    const report = await Report.findByPk(req.params.id);
-    if (!report) {
-      return res.status(404).json({ success: false, error: "Report not found" });
+    if (Array.isArray(body.failurePhotos)) {
+      body.failurePhotos = JSON.stringify(body.failurePhotos)
     }
 
-    const updatable = {
-      // Monitoring fields (may change)
-      equipmentName:  req.body.equipmentName  || report.equipmentName,
-      equipmentNo:    req.body.equipmentNo    || report.equipmentNo,
-      initialReading: req.body.initialReading || report.initialReading,
-      currentReading: req.body.currentReading || report.currentReading,
-      targetCycle:    req.body.targetCycle    || report.targetCycle,
-      reportBalance:  parseFloat(req.body.reportBalance) || report.reportBalance,
-
-      // Manual entry
-      criteria:    req.body.criteria    || report.criteria,
-      observation: req.body.observation || report.observation,
-      conclusion:  req.body.conclusion  || report.conclusion,
-      result:      req.body.result      || report.result,
-      reportedBy:  req.body.reportedBy  || report.reportedBy,
-      approvedBy:  req.body.approvedBy  || report.approvedBy,
-      requestedBy: req.body.requestedBy || report.requestedBy,
-
-      // Signatures — only update if new one provided
-      signatureReported: req.body.signReportedPreview || report.signatureReported,
-      signatureApproved: req.body.signApprovedPreview || report.signatureApproved,
-
-      // Attachments — only update if new one provided
-      postDataBase64: req.body.postDataBase64 || report.postDataBase64,
-      postDataName:   req.body.postDataName   || report.postDataName,
-
-      // Failure photos — replace entire array if new one sent
-      failurePhotos: Array.isArray(req.body.failurePhotos)
-        ? req.body.failurePhotos
-        : report.failurePhotos
-    };
-
-    await report.update(updatable);
-
-    // 🔥 CRITICAL FIX: return { data: { id } } — frontend reads res.data?.data?.id
-    return res.json({
-      success: true,
-      message: "✅ Report Updated Successfully",
-      reportNo: report.reportNo,
-      data: { id: report.id }
-    });
-
-  } catch (err) {
-    console.error("❌ REPORT UPDATE ERROR:", err);
-    return res.status(500).json({
-      success: false,
-      error: err.message || "Server Error"
-    });
+    await row.update(body)
+    ok(res, { success: true, message: 'Report updated', data: parsePhotos(row) })
+  } catch (e) {
+    fail(res, e, 'Failed to update report')
   }
-};
+}
 
 // ─────────────────────────────────────────────────────────────
-//  DELETE REPORT
+//  DELETE  /api/reports/:id
 // ─────────────────────────────────────────────────────────────
-exports.deleteReport = async (req, res) => {
+exports.remove = async (req, res) => {
   try {
-    const report = await Report.findByPk(req.params.id);
-    if (!report) {
-      return res.status(404).json({ success: false, error: "Report not found" });
-    }
-    await report.destroy();
-    return res.json({
-      success: true,
-      message: "🗑 Report Deleted Successfully"
-    });
-  } catch (err) {
-    console.error("❌ REPORT DELETE ERROR:", err);
-    return res.status(500).json({
-      success: false,
-      error: err.message || "Server Error"
-    });
+    const row = await Report.findByPk(req.params.id)
+    if (!row) return res.status(404).json({ success: false, message: 'Report not found' })
+    await row.destroy()
+    ok(res, { success: true, message: 'Report deleted' })
+  } catch (e) {
+    fail(res, e, 'Failed to delete report')
   }
-};
+}

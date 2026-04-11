@@ -1,230 +1,115 @@
-const { Op } = require("sequelize");
-const { Request } = require("../models");
+// backend/controllers/requestController.js
+'use strict'
 
-// ================= CREATE =================
-exports.createRequest = async (req, res) => {
+const db = require('../models')
+const Request = db.Request
+
+// ── Shared response helpers ───────────────────────────────────
+const ok  = (res, data, status = 200) => res.status(status).json(data)
+const fail = (res, err, msg = 'Server error', status = 500) => {
+  console.error(`[RequestCtrl] ${msg}:`, err.message || err)
+  return res.status(status).json({ success: false, message: msg, error: err.message })
+}
+
+// ─────────────────────────────────────────────────────────────
+//  GET  /api/requests
+//  Returns ALL requests — year/status filtering done in Vue
+// ─────────────────────────────────────────────────────────────
+exports.getAll = async (req, res) => {
   try {
-    const today = new Date().toISOString().split("T")[0];
-
-    const count = await Request.count();
-    const year = new Date().getFullYear();
-
-    const requestNo = `REQ-${year}-${String(count + 1).padStart(4, "0")}`;
-
-    const newRequest = await Request.create({
-      requestNo,
-
-      userName:     req.body.userName     || "User",
-      deptId:       req.body.deptId       || "D001",
-      date:         req.body.date         || today,
-
-      partNo:       req.body.partNo       || "",
-      description:  req.body.description  || "",
-      platformCode: req.body.platformCode || "",
-      productCode:  req.body.productCode  || "",
-      customer:     req.body.customer     || "",
-
-      samples:      req.body.samples      || 0,
-      testType:     req.body.testType     || "",
-      category:     req.body.category     || "",
-      testDetails:  req.body.testDetails  || "",
-      special:      req.body.special      || "",
-      criteria:     req.body.criteria     || "",
-      spec:         req.body.spec         || "",
-      testName:     req.body.testName     || "",
-
-      // ✅ ALWAYS FULL URL
-      attachment: req.file
-        ? `http://localhost:5000/uploads/${req.file.filename}`
-        : null,
-      attachmentName: req.file ? req.file.originalname : null,
-
-      status:         "Pending",
-      allocationPlNo: null,
-      rejectReason:   null,
-      responsibility: null
-    });
-
-    res.status(201).json(newRequest);
-
-  } catch (err) {
-    console.error("CREATE ERROR:", err);
-    res.status(500).json({ error: err.message });
+    const rows = await Request.findAll({ order: [['createdAt', 'DESC']] })
+    ok(res, rows)
+  } catch (e) {
+    fail(res, e, 'Failed to fetch requests')
   }
-};
+}
 
-// ================= GET ALL =================
-exports.getRequests = async (req, res) => {
+// ─────────────────────────────────────────────────────────────
+//  GET  /api/requests/:id
+// ─────────────────────────────────────────────────────────────
+exports.getOne = async (req, res) => {
   try {
-    const data = await Request.findAll({
-      order: [["createdAt", "DESC"]]
-    });
-    res.json(data);
-  } catch (err) {
-    console.error("GET ERROR:", err);
-    res.status(500).json({ error: err.message });
+    const row = await Request.findByPk(req.params.id)
+    if (!row) return res.status(404).json({ success: false, message: 'Request not found' })
+    ok(res, row)
+  } catch (e) {
+    fail(res, e, 'Failed to fetch request')
   }
-};
+}
 
-// ================= 🔍 SEARCH (for StatusEnquiry.vue) =================
-// GET /api/requests/search?type=requestNo&value=REQ-2024
-// GET /api/requests/search?type=plNo&value=00001
-// GET /api/requests/search?type=partNo&value=ABC123
-exports.searchRequests = async (req, res) => {
+// ─────────────────────────────────────────────────────────────
+//  POST /api/requests
+//  Body: all request fields (attachment may be base64 string)
+// ─────────────────────────────────────────────────────────────
+exports.create = async (req, res) => {
   try {
-    const { type, value } = req.query;
+    const body = { ...req.body }
 
-    if (!value || !value.trim()) {
-      return res.status(400).json({ error: "Search value is required" });
-    }
-
-    const val = value.trim();
-
-    // Build where clause based on search type
-    let whereClause = {};
-
-    if (type === "requestNo") {
-      whereClause = { requestNo: { [Op.like]: `%${val}%` } };
-    } else if (type === "plNo") {
-      whereClause = { allocationPlNo: { [Op.like]: `%${val}%` } };
-    } else if (type === "partNo") {
-      whereClause = { partNo: { [Op.like]: `%${val}%` } };
-    } else {
-      return res.status(400).json({ error: "Invalid search type. Use: requestNo | plNo | partNo" });
-    }
-
-    const data = await Request.findAll({
-      where: whereClause,
-      // ✅ Only return fields needed by StatusEnquiry — keeps response lean
-      attributes: [
-        "id",
-        "requestNo",
-        "allocationPlNo",
-        "partNo",
-        "description",
-        "userName",
-        "status",
-        "responsibility",
-        "testRig",
-        "startDate",
-        "createdAt"
-      ],
-      order: [["createdAt", "DESC"]]
-    });
-
-    res.json(data);
-
-  } catch (err) {
-    console.error("SEARCH ERROR:", err);
-    res.status(500).json({ error: err.message });
-  }
-};
-
-// ================= UPDATE =================
-exports.updateRequest = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const existing = await Request.findByPk(id);
-    if (!existing) {
-      return res.status(404).json({ error: "Request not found" });
-    }
-
-    let updateData = { ...req.body };
-
-    // ================= FILE UPDATE =================
+    // If a file was uploaded via multipart (multer)
     if (req.file) {
-      updateData.attachment     = `http://localhost:5000/uploads/${req.file.filename}`;
-      updateData.attachmentName = req.file.originalname;
+      body.attachment     = `uploads/${req.file.filename}`
+      body.attachmentName = req.file.originalname
     }
 
-    // ================= REJECT =================
-    if (updateData.status === "Rejected") {
-      updateData.rejectReason = req.body.rejectReason || "No reason provided";
+    // Auto-generate requestNo if not supplied
+    if (!body.requestNo) {
+      const year  = new Date().getFullYear()
+      const count = await Request.count()
+      body.requestNo = `REQ-${year}-${String(count + 1).padStart(5, '0')}`
     }
 
-    // ================= ALLOCATE =================
-    if (updateData.status === "Allocated") {
+    if (!body.status) body.status = 'Pending'
 
-      // 🔥 GENERATE ONLY ONCE
-      if (!existing.allocationPlNo) {
-        const all = await Request.findAll({
-          where: { allocationPlNo: { [Op.ne]: null } }
-        });
+    // Remove id / timestamp fields that must not be set manually
+    delete body.id
+    delete body.createdAt
+    delete body.updatedAt
 
-        const numbers = all
-          .map(r => parseInt(r.allocationPlNo))
-          .filter(n => !isNaN(n));
-
-        const max = numbers.length ? Math.max(...numbers) : 0;
-
-        updateData.allocationPlNo = String(max + 1).padStart(5, "0");
-      }
-
-      updateData.responsibility = "Admin";
-    }
-
-    await existing.update(updateData);
-
-    res.json({ message: "Updated Successfully" });
-
-  } catch (err) {
-    console.error("UPDATE ERROR:", err);
-    res.status(500).json({ error: err.message });
+    const row = await Request.create(body)
+    ok(res, { success: true, message: 'Request created', data: row }, 201)
+  } catch (e) {
+    fail(res, e, 'Failed to create request')
   }
-};
+}
 
-// ================= DELETE =================
-exports.deleteRequest = async (req, res) => {
+// ─────────────────────────────────────────────────────────────
+//  PUT  /api/requests/:id
+//  Used for: edit, accept (status→Accepted), reject, allocate,
+//            complete (status→Completed)
+// ─────────────────────────────────────────────────────────────
+exports.update = async (req, res) => {
   try {
-    const deleted = await Request.destroy({
-      where: { id: req.params.id }
-    });
+    const row = await Request.findByPk(req.params.id)
+    if (!row) return res.status(404).json({ success: false, message: 'Request not found' })
 
-    if (!deleted) {
-      return res.status(404).json({ error: "Request not found" });
+    const body = { ...req.body }
+
+    if (req.file) {
+      body.attachment     = `uploads/${req.file.filename}`
+      body.attachmentName = req.file.originalname
     }
 
-    res.json({ message: "Deleted Successfully" });
+    delete body.id
+    delete body.createdAt
+    delete body.updatedAt
 
-  } catch (err) {
-    console.error("DELETE ERROR:", err);
-    res.status(500).json({ error: err.message });
+    await row.update(body)
+    ok(res, { success: true, message: 'Request updated', data: row })
+  } catch (e) {
+    fail(res, e, 'Failed to update request')
   }
-};
+}
 
-// ================= TODAY =================
-exports.getTodayRequests = async (req, res) => {
+// ─────────────────────────────────────────────────────────────
+//  DELETE  /api/requests/:id
+// ─────────────────────────────────────────────────────────────
+exports.remove = async (req, res) => {
   try {
-    const today = new Date().toISOString().split("T")[0];
-
-    const data = await Request.findAll({
-      where: { date: today },
-      order: [["createdAt", "DESC"]]
-    });
-
-    res.json(data);
-
-  } catch (err) {
-    console.error("TODAY ERROR:", err);
-    res.status(500).json({ error: err.message });
+    const row = await Request.findByPk(req.params.id)
+    if (!row) return res.status(404).json({ success: false, message: 'Request not found' })
+    await row.destroy()
+    ok(res, { success: true, message: 'Request deleted' })
+  } catch (e) {
+    fail(res, e, 'Failed to delete request')
   }
-};
-
-// ================= ARCHIVE =================
-exports.getArchiveRequests = async (req, res) => {
-  try {
-    const today = new Date().toISOString().split("T")[0];
-
-    const data = await Request.findAll({
-      where: { date: { [Op.ne]: today } },
-      order: [["createdAt", "DESC"]]
-    });
-
-    res.json(data);
-
-  } catch (err) {
-    console.error("ARCHIVE ERROR:", err);
-    res.status(500).json({ error: err.message });
-  }
-};
+}

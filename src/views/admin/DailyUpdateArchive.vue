@@ -1,6 +1,19 @@
 <template>
   <div class="container mt-4">
-    <h2>📦 Daily Update - Archive </h2>
+    <h2>📦 Daily Update - Archive</h2>
+
+    <!-- YEAR FILTER -->
+    <div class="row mb-3">
+      <div class="col-md-3">
+        <select v-model="selectedYear" class="form-control">
+          <option value="">All Previous Years</option>
+          <option v-for="y in availableYears" :key="y" :value="y">{{ y }}</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button class="btn btn-primary w-100" @click="load">🔄 Refresh</button>
+      </div>
+    </div>
 
     <!-- TABLE -->
     <table class="table table-bordered">
@@ -11,17 +24,19 @@
           <th>PL No</th>
           <th>User</th>
           <th>Part No</th>
+          <th>Year</th>
           <th>Status</th>
           <th>Actions</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(r, i) in requests" :key="r.id">
+        <tr v-for="(r, i) in filteredRequests" :key="r.id">
           <td>{{ i + 1 }}</td>
           <td>{{ r.requestNo }}</td>
           <td>{{ r.allocationPlNo }}</td>
           <td>{{ r.userName }}</td>
           <td>{{ r.partNo }}</td>
+          <td>{{ r.date ? new Date(r.date).getFullYear() : '-' }}</td>
           <td>{{ r.status }}</td>
           <td>
             <button class="btn btn-primary btn-sm me-1" @click="openMonitoring(r)">
@@ -66,9 +81,9 @@
             </button>
           </td>
         </tr>
-        <tr v-if="requests.length === 0">
-          <td colspan="7" class="text-center text-muted py-4">
-            No archive records found .
+        <tr v-if="filteredRequests.length === 0">
+          <td colspan="8" class="text-center text-muted py-4">
+            No archive records found ❌
           </td>
         </tr>
       </tbody>
@@ -357,13 +372,14 @@
         </div>
       </div>
     </div>
+
   </div>
 </template>
 
 <script>
 import axios from 'axios'
 
-// ─── Report No Generator ───────────────────────────────────────
+// ─── Report No Generator ──────────────────────────────────────
 function generateReportNo() {
   const today = new Date()
   const dateStr =
@@ -393,18 +409,20 @@ export default {
 
   data() {
     return {
-      // ── Year filter ──────────────────────────────────────────
       currentYear: new Date().getFullYear(),
-      previousYear: new Date().getFullYear() - 1,
+      selectedYear: '',          // ✅ optional year filter dropdown
 
-      requests: [],
+      allRequests: [],           // raw data from API
       monitoring: null,
       monitoringEditMode: false,
       report: null,
       reportEditMode: false,
 
+      // ✅ Flat reactive arrays (Vue 2 safe)
       monitoringKeys: [],
       reportKeys: [],
+
+      // In-memory caches keyed by requestNo
       monitoringCache: {},
       reportCache: {},
 
@@ -418,6 +436,38 @@ export default {
   },
 
   computed: {
+    // ✅ All unique years found in previous-year allocated requests
+    availableYears() {
+      const years = this.allRequests
+        .filter((r) => {
+          if (r.status !== 'Allocated') return false
+          if (!r.date) return false
+          return new Date(r.date).getFullYear() < this.currentYear
+        })
+        .map((r) => new Date(r.date).getFullYear())
+      return [...new Set(years)].sort((a, b) => b - a)
+    },
+
+    // ✅ ARCHIVE: Allocated requests from previous years only
+    filteredRequests() {
+      return this.allRequests.filter((r) => {
+        // Must be Allocated
+        if (r.status !== 'Allocated') return false
+
+        // Must have a date
+        if (!r.date) return false
+
+        // Must be a previous year
+        const reqYear = new Date(r.date).getFullYear()
+        if (reqYear >= this.currentYear) return false
+
+        // Optional: filter by selected year
+        if (this.selectedYear && reqYear !== Number(this.selectedYear)) return false
+
+        return true
+      })
+    },
+
     yetToCover() {
       if (!this.monitoring) return 0
       return (
@@ -425,6 +475,7 @@ export default {
         (parseFloat(this.monitoring.currentReading) || 0)
       )
     },
+
     reportBalance() {
       if (!this.report) return 0
       return (
@@ -462,36 +513,20 @@ export default {
       if (idx !== -1) this.reportKeys.splice(idx, 1)
     },
 
-    // ── Load requests — PREVIOUS YEAR ONLY ───────────────────
+    // ── Load ALL requests from same endpoint, filter in computed ──
     async load() {
-      const res = await axios.get(`${API}/requests`)
-      const allRequests = res.data
-
-      // ── Filter: keep only requests from previous year ──────
-      // Assumes requestNo contains the year, e.g. "REQ-2024-0001"
-      // OR uses a createdAt / requestDate field on the record.
-      // Two strategies are applied in order:
-      //   1. Match year in requestNo string (e.g. "2024" substring)
-      //   2. Fall back to createdAt / date field if present
-      this.requests = allRequests.filter((r) => {
-        // Strategy 1: year embedded in requestNo (most common pattern)
-        if (r.requestNo && r.requestNo.includes(String(this.previousYear))) {
-          return true
-        }
-        // Strategy 2: createdAt or date field on the record
-        const dateField = r.createdAt || r.requestDate || r.date || null
-        if (dateField) {
-          const year = new Date(dateField).getFullYear()
-          return year === this.previousYear
-        }
-        return false
-      })
+      try {
+        const res = await axios.get(`${API}/requests`)
+        this.allRequests = res.data
+      } catch (err) {
+        console.error('❌ Load error:', err)
+        alert('Error loading archive requests.')
+      }
     },
 
-    // ── Cache helpers (archive uses its own namespace) ────────
+    // ── Cache helpers — separate namespace from DailyUpdate ──
     loadCaches() {
       try {
-        // Use "archive_" prefix so archive cache is separate from current-year cache
         const mc = localStorage.getItem('archive_monitoringCache')
         if (mc) {
           this.monitoringCache = JSON.parse(mc)
@@ -734,7 +769,6 @@ export default {
 
       if (type === 'report') {
         const d = this.report
-        const bal = this.reportBalance
 
         const sigR = d.signReportedPreview
           ? `${d.reportedBy || ''}<br/><img src="${d.signReportedPreview}" style="height:44px;margin-top:3px;"/>`
@@ -787,10 +821,7 @@ export default {
 </head><body>
 <table>
   <tr>
-    <td class="h-logo">
-      <img src="${logo}" height="62"/>
-      <div class="org">Lucas TVS Ltd.</div>
-    </td>
+    <td class="h-logo"><img src="${logo}" height="62"/><div class="org">Lucas TVS Ltd.</div></td>
     <td class="h-title"><h1>PROVING TEST REPORT</h1></td>
     <td class="h-right">Engineering Center<br/>Proving lab</td>
   </tr>
@@ -849,7 +880,8 @@ ${failureBlock}
 
       if (type === 'monitoring') {
         const d = this.monitoring
-        const finalCounter = (parseFloat(d.targetCycle) || 0) - (parseFloat(d.currentReading) || 0)
+        const finalCounter =
+          (parseFloat(d.targetCycle) || 0) - (parseFloat(d.currentReading) || 0)
 
         const html = `<!DOCTYPE html>
 <html><head><meta charset="utf-8"/>
@@ -942,35 +974,23 @@ ${failureBlock}
 
 <style>
 .modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.55);
-  z-index: 1000;
-  overflow-y: auto;
+  position: fixed; top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.55);
+  z-index: 1000; overflow-y: auto;
 }
 .modal-box {
-  background: #fff;
-  padding: 24px;
-  width: 540px;
-  margin: 36px auto;
+  background: #fff; padding: 24px;
+  width: 540px; margin: 36px auto;
   border-radius: 6px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
 }
-.large {
-  width: 760px;
-}
+.large { width: 760px; }
 .section-header {
-  font-weight: 600;
-  font-size: 13.5px;
-  color: #1a56a0;
-  background: #eef4ff;
+  font-weight: 600; font-size: 13.5px;
+  color: #1a56a0; background: #eef4ff;
   border-left: 4px solid #1a56a0;
-  padding: 6px 10px;
-  margin-bottom: 10px;
-  border-radius: 2px;
+  padding: 6px 10px; margin-bottom: 10px; border-radius: 2px;
 }
 .auto-field {
   background: #f4f8fd !important;
@@ -978,56 +998,24 @@ ${failureBlock}
   border-color: #b8cfe8 !important;
 }
 .file-tag {
-  display: inline-block;
-  background: #e8f5e9;
-  border: 1px solid #a5d6a7;
-  border-radius: 4px;
-  padding: 3px 10px;
-  font-size: 13px;
-  color: #2e7d32;
+  display: inline-block; background: #e8f5e9;
+  border: 1px solid #a5d6a7; border-radius: 4px;
+  padding: 3px 10px; font-size: 13px; color: #2e7d32;
 }
-.photo-preview-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.photo-thumb-wrap {
-  position: relative;
-}
-.photo-thumb {
-  width: 80px;
-  height: 80px;
-  object-fit: cover;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
+.photo-preview-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.photo-thumb-wrap { position: relative; }
+.photo-thumb { width: 80px; height: 80px; object-fit: cover; border: 1px solid #ccc; border-radius: 4px; }
 .thumb-remove {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  background: #e53935;
-  color: #fff;
-  border: none;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  font-size: 13px;
-  cursor: pointer;
-  line-height: 1.1;
+  position: absolute; top: -6px; right: -6px;
+  background: #e53935; color: #fff; border: none;
+  border-radius: 50%; width: 20px; height: 20px;
+  font-size: 13px; cursor: pointer; line-height: 1.1;
 }
 .sig-preview {
-  display: block;
-  height: 60px;
-  border: 1px dashed #aaa;
-  border-radius: 4px;
-  padding: 3px;
-  object-fit: contain;
-  background: #fafafa;
+  display: block; height: 60px;
+  border: 1px dashed #aaa; border-radius: 4px;
+  padding: 3px; object-fit: contain; background: #fafafa;
 }
-.gap-2 {
-  gap: 8px;
-}
-.me-1 {
-  margin-right: 4px;
-}
+.gap-2 { gap: 8px; }
+.me-1 { margin-right: 4px; }
 </style>

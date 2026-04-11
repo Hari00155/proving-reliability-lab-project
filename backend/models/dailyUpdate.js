@@ -1,150 +1,55 @@
+
 module.exports = (sequelize, DataTypes) => {
-  return sequelize.define(
-    "DailyUpdate",
+  const DailyUpdate = sequelize.define(
+    'DailyUpdate',
     {
-      // ── Link with Request ─────────────────────────────────
-      allocationPlNo: {
-        type: DataTypes.STRING,
-        allowNull: false
-      },
+      // ===== LINKS TO REQUEST =====
+      requestNo:      DataTypes.STRING,
+      plNo:           DataTypes.STRING,
+      allocationPlNo: DataTypes.STRING,
+      partNo:         DataTypes.STRING,
 
-      requestNo: {
-        type: DataTypes.STRING,
-        allowNull: true
-      },
+      // ===== AUTO-FILLED FROM REQUEST =====
+      description:  DataTypes.TEXT,
+      customer:     DataTypes.STRING,
+      testType:     DataTypes.STRING,
+      samples:      DataTypes.STRING,
+      testDetails:  DataTypes.TEXT,
+      standard:     DataTypes.STRING,
+      purpose:      DataTypes.STRING,
+      acceptanceCriteria: DataTypes.TEXT,
+      requestedBy:  DataTypes.STRING,
+      responsibility: DataTypes.STRING,
 
-      partNo: {
-        type: DataTypes.STRING,
-        allowNull: true
-      },
+      // ===== EQUIPMENT =====
+      equipmentName: DataTypes.STRING,
+      equipmentNo:   DataTypes.STRING,
 
-      // ── Product / Test Info ───────────────────────────────
-      description: {
-        type: DataTypes.TEXT,
-        allowNull: true
-      },
+      // ===== DATES =====
+      date:            DataTypes.STRING,    // display format  DD-MM-YYYY
+      requestDate:     DataTypes.DATEONLY,
+      testStartedOn:   DataTypes.DATEONLY,
+      testCompletedOn: DataTypes.DATEONLY,
 
-      customer: {
-        type: DataTypes.STRING,
-        allowNull: true
-      },
+      // ===== COUNTERS =====
+      targetCycle:    DataTypes.STRING,
+      initialReading: DataTypes.STRING,
+      currentReading: DataTypes.STRING,
 
-      testType: {
-        type: DataTypes.STRING,
-        allowNull: true
-      },
+      // ===== NOTES =====
+      remarks:      DataTypes.TEXT,
+      testResults:  DataTypes.TEXT,
 
-      samples: {
-        type: DataTypes.STRING,
-        allowNull: true
-      },
-
-      testDetails: {
-        type: DataTypes.TEXT,
-        allowNull: true
-      },
-
-      // ── Equipment ─────────────────────────────────────────
-      equipmentName: {
-        type: DataTypes.STRING,
-        allowNull: true
-      },
-
-      equipmentNo: {
-        type: DataTypes.STRING,
-        allowNull: true
-      },
-
-      // ── Standard / Spec ───────────────────────────────────
-      standard: {
-        type: DataTypes.STRING,
-        allowNull: true
-      },
-
-      // ── Dates ─────────────────────────────────────────────
-      updateDate: {
-        type: DataTypes.DATEONLY,
-        allowNull: true
-      },
-
-      requestDate: {
-        type: DataTypes.DATEONLY,
-        allowNull: true
-      },
-
-      testStartedOn: {
-        type: DataTypes.DATEONLY,
-        allowNull: true
-      },
-
-      testCompletedOn: {
-        type: DataTypes.DATEONLY,
-        allowNull: true
-      },
-
-      // ── Cycles / Counter ──────────────────────────────────
-      // 🔥 FIXED: was "targetCycles" — frontend sends "targetCycle"
-      targetCycle: {
-        type: DataTypes.FLOAT,
-        defaultValue: 0
-      },
-
-      initialReading: {
-        type: DataTypes.FLOAT,
-        defaultValue: 0
-      },
-
-      currentReading: {
-        type: DataTypes.FLOAT,
-        defaultValue: 0
-      },
-
-      // ✅ AUTO CALCULATED (targetCycle - currentReading)
-      yetToCover: {
-        type: DataTypes.FLOAT,
-        defaultValue: 0
-      },
-
-      // ── Purpose & Test Content ────────────────────────────
-      purpose: {
-        type: DataTypes.TEXT,
-        allowNull: true
-      },
-
-      remarks: {
-        type: DataTypes.TEXT,
-        allowNull: true
-      },
-
-      acceptanceCriteria: {
-        type: DataTypes.TEXT,
-        allowNull: true
-      },
-
-      testResults: {
-        type: DataTypes.TEXT,
-        allowNull: true
-      },
-
-      // ── Responsibility ────────────────────────────────────
-      responsibility: {
-        type: DataTypes.STRING,
-        defaultValue: "Admin"
-      },
-
-      requestedBy: {
-        type: DataTypes.STRING,
-        allowNull: true
-      },
-
-      // ── Image (existing) ──────────────────────────────────
-      photo: {
-        type: DataTypes.STRING,
-        allowNull: true
-      }
+      // ===== STATUS / ALLOCATION PASS-THROUGH =====
+      status:    DataTypes.STRING,
+      testRig:   DataTypes.STRING,
+      startDate: DataTypes.DATEONLY,
     },
     {
-      timestamps: true
+      tableName:  'daily_updates',
+      timestamps: true,
     }
-  );
-};
+  )
+
+  return DailyUpdate
+}
