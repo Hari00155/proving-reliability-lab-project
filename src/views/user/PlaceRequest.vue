@@ -158,7 +158,7 @@ export default {
 
   data() {
     return {
-      requestNo: "", // ✅ SHOW AFTER SUBMIT
+      requestNo: '',
 
       form: {
         date: new Date().toISOString().substr(0, 10),
@@ -176,7 +176,6 @@ export default {
         spec: '',
         testName: '',
         file: null,
-
         userName: 'User',
         deptId: 'D001',
       },
@@ -193,33 +192,34 @@ export default {
         const formData = new FormData()
 
         Object.keys(this.form).forEach((key) => {
-          if (key !== "file" && this.form[key]) {
+          if (key !== 'file' && this.form[key]) {
             formData.append(key, this.form[key])
           }
         })
 
         if (this.form.file) {
-          formData.append("attachment", this.form.file)
+          formData.append('attachment', this.form.file)
         }
 
         const res = await axios.post(
-          "http://localhost:5000/api/requests",
+          'http://localhost:5000/api/requests',
           formData,
           {
             headers: {
-              "Content-Type": "multipart/form-data"
-            }
+              'Content-Type': 'multipart/form-data',
+            },
           }
         )
 
-        // ✅ SET REQUEST NUMBER
-        this.requestNo = res.data.requestNo || "REQ-UNKNOWN"
+        // ✅ Backend returns { success: true, data: row }
+        // so requestNo is inside res.data.data.requestNo
+        this.requestNo = res.data.data.requestNo
 
         this.resetForm()
 
       } catch (err) {
-        console.error("ERROR:", err.response?.data || err)
-        alert("❌ Error submitting request")
+        console.error('ERROR:', err.response?.data || err)
+        alert('❌ Error submitting request')
       }
     },
 

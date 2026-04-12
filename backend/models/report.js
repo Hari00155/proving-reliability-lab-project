@@ -49,16 +49,16 @@ module.exports = (sequelize, DataTypes) => {
 
       // ===== ATTACHMENTS =====
       // base64 data-URL of the uploaded file
-      postDataBase64: DataTypes.LONGTEXT,
+      postDataBase64: DataTypes.TEXT('long'),  // ✅ fixed
       postDataName:   DataTypes.STRING,
 
       // JSON-serialised array of base64 image strings
       // e.g. '["data:image/jpeg;base64,...", ...]'
-      failurePhotos: DataTypes.LONGTEXT,
+      failurePhotos: DataTypes.TEXT('long'),   // ✅ fixed
 
       // ===== SIGNATURES (base64 image data-URLs) =====
-      signReportedPreview: DataTypes.LONGTEXT,
-      signApprovedPreview: DataTypes.LONGTEXT,
+      signReportedPreview: DataTypes.TEXT('long'),  // ✅ fixed
+      signApprovedPreview: DataTypes.TEXT('long'),  // ✅ fixed
     },
     {
       tableName:  'reports',
