@@ -23,8 +23,11 @@
       </div>
     </div>
 
+    <!-- LOADING -->
+    <div v-if="loading" class="text-center py-3 text-muted">⏳ Loading…</div>
+
     <!-- NO RESULT -->
-    <div v-if="searched && !result" class="alert alert-warning">
+    <div v-if="searched && !result && !loading" class="alert alert-warning">
       ❌ No Datasheet found for the given Request No / PL No. Make sure Monitoring has been saved first.
     </div>
 
@@ -45,7 +48,6 @@
           <tr><th>Target Cycle</th><td>{{ result.targetCycle || '-' }}</td></tr>
         </tbody>
       </table>
-      <!-- ✅ Print & Download as separate clearly labelled buttons -->
       <div class="d-flex gap-3">
         <button class="btn btn-info" @click="printDatasheet">🖨 Print Datasheet (A4 Landscape)</button>
         <button class="btn btn-outline-danger" style="border:1px solid #e53935;color:#e53935;"
@@ -64,11 +66,13 @@ const API = 'http://localhost:5000/api'
 
 export default {
   name: 'DatasheetPrint',
+
   data() {
     return {
       searchReqNo: '',
       searchPlNo: '',
       searched: false,
+      loading: false,
       result: null,
       allMonitoring: [],
     }
@@ -80,19 +84,20 @@ export default {
 
   methods: {
     async loadData() {
+      this.loading = true
       try {
         const monRes = await axios.get(`${API}/dailyupdates`)
         this.allMonitoring = monRes.data || []
       } catch (err) {
         console.warn('DB fetch failed, using localStorage fallback:', err)
-        // Fallback: load from localStorage monitoring cache
         const mc = localStorage.getItem('monitoringCache')
         if (mc) {
           try {
-            const cache = JSON.parse(mc)
-            this.allMonitoring = Object.values(cache)
-          } catch(e) { console.warn('Cache parse error', e) }
+            this.allMonitoring = Object.values(JSON.parse(mc))
+          } catch (e) { console.warn('Cache parse error', e) }
         }
+      } finally {
+        this.loading = false
       }
     },
 
@@ -101,24 +106,24 @@ export default {
       this.result = null
 
       const reqNo = this.searchReqNo.trim()
-      const plNo = this.searchPlNo.trim()
+      const plNo  = this.searchPlNo.trim()
 
       if (!reqNo && !plNo) {
         alert('Please enter a Request No or PL No.')
         return
       }
 
-      // Search in-memory (from DB or cache)
+      // Search from DB/cache array
       if (this.allMonitoring.length) {
-        const found = this.allMonitoring.find(m => {
+        const found = this.allMonitoring.find((m) => {
           if (reqNo && (m.requestNo || '').toLowerCase() === reqNo.toLowerCase()) return true
-          if (plNo && (m.plNo || '').toLowerCase() === plNo.toLowerCase()) return true
+          if (plNo  && (m.plNo || '').toLowerCase()      === plNo.toLowerCase())  return true
           return false
         })
         if (found) { this.result = found; return }
       }
 
-      // Final fallback: check localStorage directly
+      // Final fallback: localStorage
       const raw = localStorage.getItem('monitoringCache')
       if (raw) {
         try {
@@ -126,13 +131,12 @@ export default {
           for (const key of Object.keys(cache)) {
             const m = cache[key]
             if (reqNo && (m.requestNo || '').toLowerCase() === reqNo.toLowerCase()) { this.result = m; return }
-            if (plNo && (m.plNo || '').toLowerCase() === plNo.toLowerCase()) { this.result = m; return }
+            if (plNo  && (m.plNo || '').toLowerCase()      === plNo.toLowerCase())  { this.result = m; return }
           }
-        } catch(e) {}
+        } catch (e) { /* ignore */ }
       }
     },
 
-    // ✅ Full A4 Landscape Datasheet print with all monitoring fields
     printDatasheet() {
       const d = this.result
       if (!d) return
@@ -140,7 +144,7 @@ export default {
       const finalCounter = (parseFloat(d.targetCycle) || 0) - (parseFloat(d.currentReading) || 0)
 
       const html = `<!DOCTYPE html><html><head><meta charset="utf-8"/>
-<title>Proving Test Data Sheet - ${d.requestNo||''}</title>
+<title>Proving Test Data Sheet - ${d.requestNo || ''}</title>
 <style>
   @page{size:A4 landscape;margin:12mm 14mm}
   *{box-sizing:border-box;margin:0;padding:0}
@@ -162,54 +166,47 @@ export default {
   <td class="th-title" style="border:none;"><h1>PROVING TEST DATA SHEET</h1></td>
   <td class="th-logo" style="border:none;"><img src="${logo}" height="65"/></td>
 </tr></table>
-
 <table class="main">
   <tr>
-    <td colspan="3"><span class="lbl">Test Equipment :</span> ${d.equipmentName||''}</td>
-    <td class="rc"><span class="lbl">Equip.No :</span> ${d.equipmentNo||''}</td>
+    <td colspan="3"><span class="lbl">Test Equipment :</span> ${d.equipmentName || ''}</td>
+    <td class="rc"><span class="lbl">Equip.No :</span> ${d.equipmentNo || ''}</td>
   </tr>
   <tr>
     <td colspan="3">
-      <span class="lbl">Product/Component :</span> ${d.description||d.partNo||''}<br/>
-      <span class="lbl">Test Type / Purpose :</span> ${d.purpose||d.testType||''}&nbsp;&nbsp;
-      <span class="lbl">Cust/Appln :</span> ${d.customer||''}&nbsp;&nbsp;
-      <span class="lbl">No of Samples :</span> ${d.samples||''}
+      <span class="lbl">Product/Component :</span> ${d.description || d.partNo || ''}<br/>
+      <span class="lbl">Test Type / Purpose :</span> ${d.purpose || d.testType || ''}&nbsp;&nbsp;
+      <span class="lbl">Cust/Appln :</span> ${d.customer || ''}&nbsp;&nbsp;
+      <span class="lbl">No of Samples :</span> ${d.samples || ''}
     </td>
     <td class="rc">
-      <span class="lbl">PL.No :</span> ${d.plNo||''}<br/>
-      <span class="lbl">Request No :</span> ${d.requestNo||''}<br/>
-      <span class="lbl">Date :</span> ${d.date||''}<br/>
-      <span class="lbl">Request Date :</span> ${d.requestDate||''}
+      <span class="lbl">PL.No :</span> ${d.plNo || ''}<br/>
+      <span class="lbl">Request No :</span> ${d.requestNo || ''}<br/>
+      <span class="lbl">Date :</span> ${d.date || ''}<br/>
+      <span class="lbl">Request Date :</span> ${d.requestDate || ''}
     </td>
   </tr>
   <tr>
-    <td colspan="3"><span class="lbl">Standard / Spec :</span> ${d.standard||''}</td>
-    <td class="rc"><span class="lbl">Test Started On :</span> ${d.testStartedOn||''}</td>
+    <td colspan="3"><span class="lbl">Standard / Spec :</span> ${d.standard || ''}</td>
+    <td class="rc"><span class="lbl">Test Started On :</span> ${d.testStartedOn || ''}</td>
   </tr>
   <tr>
     <td colspan="3" rowspan="2" style="white-space:pre-wrap;">
-      <span class="lbl">Test Details :</span><br/>${d.testDetails||''}
+      <span class="lbl">Test Details :</span><br/>${d.testDetails || ''}
     </td>
-    <td class="rc"><span class="lbl">Initial Hourmeter/Counter :</span> ${d.initialReading||''}</td>
+    <td class="rc"><span class="lbl">Initial Hourmeter/Counter :</span> ${d.initialReading || ''}</td>
   </tr>
+  <tr><td class="rc"><span class="lbl">Test Completed On :</span> ${d.testCompletedOn || ''}</td></tr>
   <tr>
-    <td class="rc"><span class="lbl">Test Completed On :</span> ${d.testCompletedOn||''}</td>
-  </tr>
-  <tr>
-    <td colspan="3"><span class="lbl">Purpose Of The Test :</span> ${d.purpose||''}</td>
+    <td colspan="3"><span class="lbl">Purpose Of The Test :</span> ${d.purpose || ''}</td>
     <td class="rc"><span class="lbl">Final Hourmeter/Counter :</span> ${finalCounter}</td>
   </tr>
+  <tr><td colspan="4"><span class="lbl">Tryout Details :</span><br/>${d.remarks || ''}</td></tr>
+  <tr><td colspan="4"><span class="lbl">Acceptance Criteria :</span> ${d.acceptanceCriteria || ''}</td></tr>
   <tr>
-    <td colspan="4"><span class="lbl">Tryout Details :</span><br/>${d.remarks||''}</td>
-  </tr>
-  <tr>
-    <td colspan="4"><span class="lbl">Acceptance Criteria :</span> ${d.acceptanceCriteria||''}</td>
-  </tr>
-  <tr>
-    <td colspan="3"><span class="lbl">Test Results :</span><br/>${d.testResults||''}</td>
+    <td colspan="3"><span class="lbl">Test Results :</span><br/>${d.testResults || ''}</td>
     <td class="rc">
-      <span class="lbl">Responsibility :</span> ${d.responsibility||''}<br/>
-      <span class="lbl">Requested By :</span> ${d.requestedBy||''}
+      <span class="lbl">Responsibility :</span> ${d.responsibility || ''}<br/>
+      <span class="lbl">Requested By :</span> ${d.requestedBy || ''}
     </td>
   </tr>
 </table>

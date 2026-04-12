@@ -27,8 +27,11 @@
       </div>
     </div>
 
+    <!-- LOADING -->
+    <div v-if="loading" class="text-center py-3 text-muted">⏳ Loading…</div>
+
     <!-- NO RESULT -->
-    <div v-if="searched && !result" class="alert alert-warning">
+    <div v-if="searched && !result && !loading" class="alert alert-warning">
       ❌ No Report found for the given search. Make sure the Report has been saved first.
     </div>
 
@@ -66,7 +69,6 @@
         </tbody>
       </table>
 
-      <!-- ✅ Print & Download buttons — both trigger full rich print with all details -->
       <div class="d-flex gap-3">
         <button class="btn btn-primary" @click="printReport">🖨 Print Report (A4 Portrait)</button>
         <button class="btn btn-outline-danger" style="border:1px solid #e53935;color:#e53935;"
@@ -86,12 +88,14 @@ const API = 'http://localhost:5000/api'
 
 export default {
   name: 'ReportPrint',
+
   data() {
     return {
       searchReqNo: '',
       searchPlNo: '',
       searchReportNo: '',
       searched: false,
+      loading: false,
       result: null,
       allReports: [],
     }
@@ -103,6 +107,7 @@ export default {
 
   methods: {
     async loadData() {
+      this.loading = true
       try {
         const res = await axios.get(`${API}/reports`)
         this.allReports = res.data || []
@@ -111,10 +116,11 @@ export default {
         const rc = localStorage.getItem('reportCache')
         if (rc) {
           try {
-            const cache = JSON.parse(rc)
-            this.allReports = Object.values(cache)
-          } catch(e) { console.warn('Cache parse error', e) }
+            this.allReports = Object.values(JSON.parse(rc))
+          } catch (e) { console.warn('Cache parse error', e) }
         }
+      } finally {
+        this.loading = false
       }
     },
 
@@ -122,8 +128,8 @@ export default {
       this.searched = true
       this.result = null
 
-      const reqNo = this.searchReqNo.trim()
-      const plNo = this.searchPlNo.trim()
+      const reqNo    = this.searchReqNo.trim()
+      const plNo     = this.searchPlNo.trim()
       const reportNo = this.searchReportNo.trim()
 
       if (!reqNo && !plNo && !reportNo) {
@@ -131,29 +137,28 @@ export default {
         return
       }
 
-      // Search DB/cache records
       if (this.allReports.length) {
-        const found = this.allReports.find(r => {
-          if (reqNo && (r.reqNo || '').toLowerCase() === reqNo.toLowerCase()) return true
-          if (plNo && (r.plNo || '').toLowerCase() === plNo.toLowerCase()) return true
+        const found = this.allReports.find((r) => {
+          if (reqNo    && (r.reqNo    || '').toLowerCase() === reqNo.toLowerCase())    return true
+          if (plNo     && (r.plNo     || '').toLowerCase() === plNo.toLowerCase())     return true
           if (reportNo && (r.reportNo || '').toLowerCase() === reportNo.toLowerCase()) return true
           return false
         })
         if (found) { this.result = found; return }
       }
 
-      // Final fallback: direct localStorage check
+      // Fallback: localStorage
       const raw = localStorage.getItem('reportCache')
       if (raw) {
         try {
           const cache = JSON.parse(raw)
           for (const key of Object.keys(cache)) {
             const r = cache[key]
-            if (reqNo && (r.reqNo || '').toLowerCase() === reqNo.toLowerCase()) { this.result = r; return }
-            if (plNo && (r.plNo || '').toLowerCase() === plNo.toLowerCase()) { this.result = r; return }
+            if (reqNo    && (r.reqNo    || '').toLowerCase() === reqNo.toLowerCase())    { this.result = r; return }
+            if (plNo     && (r.plNo     || '').toLowerCase() === plNo.toLowerCase())     { this.result = r; return }
             if (reportNo && (r.reportNo || '').toLowerCase() === reportNo.toLowerCase()) { this.result = r; return }
           }
-        } catch(e) {}
+        } catch (e) { /* ignore */ }
       }
     },
 
@@ -166,42 +171,40 @@ export default {
       }
     },
 
-    // ✅ Full A4 Portrait report print — signatures, failure photos, post data, result colour, all fields
     printReport() {
       const d = this.result
       if (!d) return
       const logo = window.location.origin + '/images/TVS.jpg'
 
-      // Signature blocks — show image if available, else underline placeholder
       const sigR = d.signReportedPreview
-        ? `${d.reportedBy||''}<br/><img src="${d.signReportedPreview}" style="height:44px;margin-top:3px;border:1px dashed #aaa;padding:2px;background:#fafafa;object-fit:contain;"/>`
-        : `<span style="display:inline-block;border-top:1px solid #000;min-width:130px;margin-top:28px;padding-top:3px;font-size:12px;">${d.reportedBy||''}</span>`
+        ? `${d.reportedBy || ''}<br/><img src="${d.signReportedPreview}" style="height:44px;margin-top:3px;border:1px dashed #aaa;padding:2px;background:#fafafa;object-fit:contain;"/>`
+        : `<span style="display:inline-block;border-top:1px solid #000;min-width:130px;margin-top:28px;padding-top:3px;font-size:12px;">${d.reportedBy || ''}</span>`
 
       const sigA = d.signApprovedPreview
-        ? `${d.approvedBy||''}<br/><img src="${d.signApprovedPreview}" style="height:44px;margin-top:3px;border:1px dashed #aaa;padding:2px;background:#fafafa;object-fit:contain;"/>`
-        : `<span style="display:inline-block;border-top:1px solid #000;min-width:130px;margin-top:28px;padding-top:3px;font-size:12px;">${d.approvedBy||''}</span>`
+        ? `${d.approvedBy || ''}<br/><img src="${d.signApprovedPreview}" style="height:44px;margin-top:3px;border:1px dashed #aaa;padding:2px;background:#fafafa;object-fit:contain;"/>`
+        : `<span style="display:inline-block;border-top:1px solid #000;min-width:130px;margin-top:28px;padding-top:3px;font-size:12px;">${d.approvedBy || ''}</span>`
 
-      // Failure photos block
-      const photoImgs = (d.failurePhotos || []).map(src =>
-        `<img src="${src}" style="max-width:240px;max-height:190px;margin:4px;border:1px solid #999;object-fit:cover;border-radius:3px;"/>`
-      ).join('')
+      const photoImgs = (d.failurePhotos || [])
+        .map(
+          (src) =>
+            `<img src="${src}" style="max-width:240px;max-height:190px;margin:4px;border:1px solid #999;object-fit:cover;border-radius:3px;"/>`
+        )
+        .join('')
       const failureBlock = (d.failurePhotos || []).length
         ? `<hr style="border:none;border-top:1px solid #000;margin:6px 0;"/>
-           <div>
-             <b>Failure Photos:</b>
+           <div><b>Failure Photos:</b>
              <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;">${photoImgs}</div>
            </div>` : ''
 
-      // Post data attachment label
       const postDataBlock = d.postDataName
         ? `<hr style="border:none;border-top:1px solid #000;margin:6px 0;"/>
            <div><b>Post Data Attachment:</b> <span style="color:#1a56a0;">${d.postDataName}</span></div>` : ''
 
-      // Result color
-      const resultColor = (d.result === 'Passed' || d.result === 'Completed') ? '#1a7d2a' : '#c00000'
+      const resultColor =
+        d.result === 'Passed' || d.result === 'Completed' ? '#1a7d2a' : '#c00000'
 
       const html = `<!DOCTYPE html><html><head><meta charset="utf-8"/>
-<title>Proving Test Report - ${d.reqNo||''}</title>
+<title>Proving Test Report - ${d.reqNo || ''}</title>
 <style>
   @page{size:A4 portrait;margin:11mm 13mm}
   *{box-sizing:border-box;margin:0;padding:0}
@@ -226,77 +229,62 @@ export default {
   @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
 </style>
 </head><body>
-
-<!-- Header -->
 <table><tr>
-  <td class="h-logo">
-    <img src="${logo}" height="62"/>
-    <div class="org">Lucas TVS Ltd.</div>
-  </td>
+  <td class="h-logo"><img src="${logo}" height="62"/><div class="org">Lucas TVS Ltd.</div></td>
   <td class="h-title"><h1>PROVING TEST REPORT</h1></td>
   <td class="h-right">Engineering Center<br/>Proving lab</td>
 </tr></table>
-
-<!-- Green bar: Report No, Request No, PL No, Date -->
 <table class="bar"><tr>
-  <td><span class="gl">Report No :</span>&nbsp;<span class="gv">${d.reportNo||''}</span></td>
-  <td><span class="gl">Request No :</span>&nbsp;<span class="gv">${d.reqNo||''}</span></td>
-  <td><span class="gl">PL No :</span>&nbsp;<span class="gv">${d.plNo||''}</span></td>
-  <td><span class="gl">DATE :</span>&nbsp;<span class="gv">${d.date||''}</span></td>
+  <td><span class="gl">Report No :</span>&nbsp;<span class="gv">${d.reportNo || ''}</span></td>
+  <td><span class="gl">Request No :</span>&nbsp;<span class="gv">${d.reqNo || ''}</span></td>
+  <td><span class="gl">PL No :</span>&nbsp;<span class="gv">${d.plNo || ''}</span></td>
+  <td><span class="gl">DATE :</span>&nbsp;<span class="gv">${d.date || ''}</span></td>
 </tr></table>
-
-<!-- Product & Part -->
 <div class="body-row">
   <span class="lbl">Product :</span>
-  <span class="val">${d.description||''}</span>
+  <span class="val">${d.description || ''}</span>
   <span style="font-weight:bold;margin-left:20px;white-space:nowrap;">Part<br/>Number :</span>
-  <span style="margin-left:6px;">${d.partNo||''}</span>
+  <span style="margin-left:6px;">${d.partNo || ''}</span>
 </div>
-<div class="body-row"><span class="lbl">Cust/Appln :</span><span class="val">${d.customer||''}</span></div>
-<div class="body-row"><span class="lbl">Component :</span><span class="val">${d.component||'-'}</span></div>
-<div class="body-row"><span class="lbl">Test &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span><span class="val">${d.testName||''}</span></div>
-<div class="body-row"><span class="lbl">Special<br/>Features &nbsp;&nbsp;&nbsp; :</span><span class="val">${d.special||'-'}</span></div>
-<div class="body-row"><span class="lbl">Purpose Of<br/>The Test &nbsp;&nbsp;&nbsp; :</span><span class="val">${d.category||''}</span></div>
-
+<div class="body-row"><span class="lbl">Cust/Appln :</span><span class="val">${d.customer || ''}</span></div>
+<div class="body-row"><span class="lbl">Component :</span><span class="val">${d.component || '-'}</span></div>
+<div class="body-row"><span class="lbl">Test &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span><span class="val">${d.testName || ''}</span></div>
+<div class="body-row"><span class="lbl">Special<br/>Features &nbsp;&nbsp;&nbsp; :</span><span class="val">${d.special || '-'}</span></div>
+<div class="body-row"><span class="lbl">Purpose Of<br/>The Test &nbsp;&nbsp;&nbsp; :</span><span class="val">${d.category || ''}</span></div>
 <hr class="sec"/>
-<div class="body-row"><span class="lbl">Test Type &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span><span class="val">${d.testType||''}</span></div>
-<div class="body-row"><span class="lbl">No Of Samples &nbsp;&nbsp;&nbsp;&nbsp;:</span><span class="val">${d.samples||''}</span></div>
-<div class="body-row"><span class="lbl">Standard / Spec &nbsp;&nbsp;&nbsp;:</span><span class="val">${d.standard||''}</span></div>
-<div class="body-row"><span class="lbl">Test Equipment &nbsp;&nbsp; :</span><span class="val">${d.spec||d.equipmentName||''}</span></div>
-<div class="body-row"><span class="lbl">Equipment No &nbsp;&nbsp;&nbsp;&nbsp; :</span><span class="val">${d.equipmentNo||''}</span></div>
-<div class="body-row"><span class="lbl">Spec./Test Details :</span><span class="val">${d.testDetails||''}</span></div>
-
+<div class="body-row"><span class="lbl">Test Type &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span><span class="val">${d.testType || ''}</span></div>
+<div class="body-row"><span class="lbl">No Of Samples &nbsp;&nbsp;&nbsp;&nbsp;:</span><span class="val">${d.samples || ''}</span></div>
+<div class="body-row"><span class="lbl">Standard / Spec &nbsp;&nbsp;&nbsp;:</span><span class="val">${d.standard || ''}</span></div>
+<div class="body-row"><span class="lbl">Test Equipment &nbsp;&nbsp; :</span><span class="val">${d.spec || d.equipmentName || ''}</span></div>
+<div class="body-row"><span class="lbl">Equipment No &nbsp;&nbsp;&nbsp;&nbsp; :</span><span class="val">${d.equipmentNo || ''}</span></div>
+<div class="body-row"><span class="lbl">Spec./Test Details :</span><span class="val">${d.testDetails || ''}</span></div>
 <hr class="sec"/>
 <div class="body-row">
-  <span class="lbl">Initial Counter &nbsp; :</span><span class="val">${d.initialReading||''}</span>
+  <span class="lbl">Initial Counter &nbsp; :</span><span class="val">${d.initialReading || ''}</span>
   &nbsp;&nbsp;
-  <span class="lbl" style="margin-left:20px;">Current Counter :</span><span class="val">${d.currentReading||''}</span>
+  <span class="lbl" style="margin-left:20px;">Current Counter :</span><span class="val">${d.currentReading || ''}</span>
   &nbsp;&nbsp;
-  <span class="lbl" style="margin-left:20px;">Target Cycle :</span><span class="val">${d.targetCycle||''}</span>
+  <span class="lbl" style="margin-left:20px;">Target Cycle :</span><span class="val">${d.targetCycle || ''}</span>
 </div>
-
 <hr class="sec"/>
-<div class="body-row"><span class="lbl">Acceptance<br/>Criteria :</span><span class="val">${d.criteria||''}</span></div>
-
+<div class="body-row"><span class="lbl">Acceptance<br/>Criteria :</span><span class="val">${d.criteria || ''}</span></div>
 <hr class="sec"/>
-<div class="body-row"><span class="lbl">Observation :</span><span class="val">${d.observation||''}</span></div>
+<div class="body-row"><span class="lbl">Observation :</span><span class="val">${d.observation || ''}</span></div>
 ${postDataBlock}
 ${failureBlock}
 <hr class="sec"/>
-<div class="body-row"><span class="lbl">Conclusion &nbsp; :</span><span class="val">${d.conclusion||''}</span></div>
+<div class="body-row"><span class="lbl">Conclusion &nbsp; :</span><span class="val">${d.conclusion || ''}</span></div>
 <div class="body-row" style="margin-top:4px;">
   <span class="lbl">Result &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
-  <span class="val" style="font-weight:bold;color:${resultColor};">${d.result||''}</span>
+  <span class="val" style="font-weight:bold;color:${resultColor};">${d.result || ''}</span>
 </div>
-
-<!-- Signatures -->
 <div class="sig-line">
   <div class="sig-cell"><b>Reported By :</b>&nbsp;&nbsp;${sigR}</div>
   <div class="sig-cell"><b>Approved By :</b>&nbsp;&nbsp;${sigA}</div>
 </div>
 <div style="display:flex;border-top:1px solid #ccc;font-size:12px;padding:4px 4px;">
   <div style="flex:1;"><b>Circulation :</b>&nbsp;&nbsp;Dev.Engg/file</div>
-  <div style="flex:1;"><b>Requested By :</b>&nbsp;&nbsp;${d.requestedBy||''}</div>
+  <div style="flex:1;"><b>Requested By :</b>&nbsp;&nbsp;${d.requestedBy || ''}</div>
 </div>
 <div class="footer-line">
   <span>FORM NO: J21 - 03</span>
