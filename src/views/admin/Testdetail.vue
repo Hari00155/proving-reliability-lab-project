@@ -1,1 +1,0 @@
-<template>TestDetail</template>

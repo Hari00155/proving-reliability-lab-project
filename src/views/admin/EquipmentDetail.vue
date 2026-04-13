@@ -1,1 +1,0 @@
-<template>EquipmentDetail</template>

@@ -70,28 +70,19 @@ import Status from "./admin/Status.vue";
 import DailyUpdateList from "./admin/DailyUpdateList.vue";
 import DailyUpdateSearch from "./admin/DailyUpdateSearch.vue";
 import DailyUpdateArchive from "./admin/DailyUpdateArchive.vue";
-import PrintRequest from "./admin/PrintRequest.vue";
-import TestDetail from "./admin/TestDetail.vue";
-import Standards from "./admin/Standards.vue";
-import ApproveReport from "./admin/ApproveReport.vue";
-import UserDetail from "./admin/UserDetail.vue";
-import DepartmentDetail from "./admin/DepartmentDetail.vue";
-import NewTestEntry from "./admin/NewTestEntry.vue";
-import UserResponsibility from "./admin/UserResponsibility.vue";
-import EquipmentDetail from "./admin/EquipmentDetail.vue";
-import ProductDetail from "./admin/ProductDetail.vue";
-import SearchReport from "./admin/SearchReport.vue";
-import ReportGenerator from "./admin/ReportGenerator.vue";
 import PrintDataSheet from "./admin/PrintDataSheet.vue";
+import SearchReport from "./admin/SearchReport.vue";
+import PrintRequest from "./admin/PrintRequest.vue";
 import RejectedRequest from "./admin/RejectedRequest.vue";
+import ReportGenerator from "./admin/ReportGenerator.vue";
+
+
 
 export default {
   components: {
     Request, RequestArchive, Status, DailyUpdateList,
     DailyUpdateSearch, DailyUpdateArchive, PrintRequest,
-    TestDetail, Standards, ApproveReport, UserDetail,
-    DepartmentDetail, NewTestEntry, UserResponsibility,
-    EquipmentDetail, ProductDetail, SearchReport,
+     SearchReport,
     ReportGenerator, PrintDataSheet, RejectedRequest
   },
 
@@ -106,20 +97,10 @@ export default {
         { name: "DailyUpdateSearch",   label: "Daily Update Search" },
         { name: "DailyUpdateArchive",  label: "Daily Update Archive" },
         { name: "PrintRequest",        label: "Print Request" },
-        { name: "TestDetail",          label: "Test Detail View" },
-        { name: "Standards",           label: "Standards" },
-        { name: "ApproveReport",       label: "Approve Report" },
-        { name: "UserDetail",          label: "User Detail" },
-        { name: "DepartmentDetail",    label: "Department Detail" },
-        { name: "NewTestEntry",        label: "New Test Entry" },
-        { name: "UserResponsibility",  label: "User Responsibility" },
-        { name: "EquipmentDetail",     label: "Equipment Detail" },
-        { name: "ProductDetail",       label: "Product Detail" },
         { name: "SearchReport",        label: "Search Report" },
         { name: "ReportGenerator",     label: "Report Generator" },
         { name: "PrintDataSheet",      label: "Print Data Sheet" },
         { name: "RejectedRequest",     label: "Rejected Request" },
-        { name: "Email",               label: "Email" }
       ]
     };
   },

@@ -1,254 +1,307 @@
 <template>
   <div class="container mt-4">
+    <h2>🔍 Status Enquiry</h2>
 
-    <h2 class="title">📊 Request Status</h2>
-
-    <!-- FILTER -->
-    <div class="row mb-3">
-      <div class="col-md-4">
-        <input v-model="searchText" class="form-control"
-          placeholder="Search (Part / Customer / Test Type)" />
-      </div>
-
-      <div class="col-md-3">
-        <select v-model="searchStatus" class="form-control">
-          <option value="">All Status</option>
-          <option>Pending</option>
-          <option>Approved</option>
-          <option>Rejected</option>
-          <option>Completed</option>
-        </select>
+    <!-- SEARCH BOX -->
+    <div class="search-card mb-4">
+      <div class="search-title">SEARCH BY</div>
+      <div class="d-flex gap-3 align-items-end flex-wrap mt-3">
+        <div>
+          <label class="form-label fw-bold">Search Type</label>
+          <select v-model="searchType" class="form-control" style="width:180px;">
+            <option value="requestNo">Request Number</option>
+            <option value="plNo">PL Number</option>
+            <option value="partNo">Part Number</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label fw-bold">Enter Value</label>
+          <input
+            v-model="searchValue"
+            class="form-control"
+            style="width:220px;"
+            placeholder="Type to search..."
+            @keyup.enter="doSearch"
+          />
+        </div>
+        <div>
+          <button class="btn btn-primary" @click="doSearch">🔍 Search</button>
+          <button class="btn btn-secondary ms-2" @click="clearSearch">✖ Clear</button>
+        </div>
       </div>
     </div>
 
-    <!-- TABLE -->
-    <div class="table-responsive">
-      <table class="table custom-table">
-        <thead>
+    <!-- NO RESULTS -->
+    <div v-if="searched && results.length === 0" class="alert alert-warning">
+      No records found for the given search.
+    </div>
+
+    <!-- RESULTS TABLE -->
+    <div v-if="results.length > 0">
+      <table class="table table-bordered table-hover">
+        <thead class="table-dark">
           <tr>
-            <th>Date</th>
-            <th>Part No</th>
-            <th>Customer</th>
-            <th>Test Type</th>
+            <th>S.No</th>
+            <th>Request No</th>
             <th>PL No</th>
-            <th>Status</th>
-            <th>Reason</th>
-            <th>View</th>
+            <th>Part No</th>
+            <th>Description</th>
+            <th>User</th>
+            <th>Status Progress</th>
+            <th>Current Status</th>
           </tr>
         </thead>
-
         <tbody>
-          <tr v-for="req in filteredRequests" :key="req.id">
-
-            <td>{{ req.date }}</td>
-            <td>{{ req.partNo }}</td>
-            <td>{{ req.customer }}</td>
-            <td>{{ req.testType }}</td>
-
+          <tr v-for="(r, i) in results" :key="r.requestNo">
+            <td>{{ i + 1 }}</td>
+            <td><strong>{{ r.requestNo }}</strong></td>
+            <td>{{ r.plNo }}</td>
+            <td>{{ r.partNo }}</td>
+            <td>{{ r.description }}</td>
+            <td>{{ r.userName }}</td>
             <td>
-              <span v-if="req.allocationPlNo">{{ req.allocationPlNo }}</span>
-              <span v-else>-</span>
+              <!-- PROGRESS STEPPER -->
+              <div class="stepper">
+                <div
+                  v-for="(step, si) in steps"
+                  :key="si"
+                  class="step"
+                  :class="{
+                    'step-done':  si < getStepIndex(r),
+                    'step-active': si === getStepIndex(r),
+                    'step-pending': si > getStepIndex(r)
+                  }"
+                >
+                  <div class="step-dot">{{ si + 1 }}</div>
+                  <div class="step-label">{{ step }}</div>
+                  <div v-if="si < steps.length - 1" class="step-line"></div>
+                </div>
+              </div>
             </td>
-
-            <!-- STATUS COLOR -->
             <td>
-              <span :class="['badge-status', statusClass(req.status)]">
-                {{ req.status }}
+              <span class="badge" :class="badgeClass(r)">
+                {{ currentStatusLabel(r) }}
               </span>
             </td>
-
-            <!-- REJECT REASON -->
-            <td>
-              <span v-if="req.status === 'Rejected'">
-                {{ req.rejectReason || '-' }}
-              </span>
-              <span v-else>-</span>
-            </td>
-
-            <td>
-              <button class="btn btn-info btn-sm" @click="viewRequest(req)">
-                View
-              </button>
-            </td>
-
           </tr>
         </tbody>
       </table>
     </div>
 
-    <!-- VIEW MODAL -->
-    <div v-if="selectedRequest" class="modal-overlay">
-      <div class="modal-box">
-
-        <h4>📄 Full Details</h4>
-
-        <div class="grid">
-          <p><b>Date:</b> {{ selectedRequest.date }}</p>
-          <p><b>Part No:</b> {{ selectedRequest.partNo }}</p>
-          <p><b>Customer:</b> {{ selectedRequest.customer }}</p>
-          <p><b>Test Type:</b> {{ selectedRequest.testType }}</p>
-          <p><b>PL No:</b> {{ selectedRequest.allocationPlNo }}</p>
-          <p><b>Status:</b> {{ selectedRequest.status }}</p>
-
-          <p v-if="selectedRequest.status === 'Rejected'">
-            <b>Reject Reason:</b> {{ selectedRequest.rejectReason }}
-          </p>
-
-          <p><b>Description:</b> {{ selectedRequest.description }}</p>
-          <p><b>Platform Code:</b> {{ selectedRequest.platformCode }}</p>
-          <p><b>Product Code:</b> {{ selectedRequest.productCode }}</p>
-          <p><b>Samples:</b> {{ selectedRequest.samples }}</p>
-          <p><b>Category:</b> {{ selectedRequest.category }}</p>
-          <p><b>Test Details:</b> {{ selectedRequest.testDetails }}</p>
-          <p><b>Special:</b> {{ selectedRequest.special }}</p>
-          <p><b>Criteria:</b> {{ selectedRequest.criteria }}</p>
-          <p><b>Specification:</b> {{ selectedRequest.spec }}</p>
-          <p><b>Test Name:</b> {{ selectedRequest.testName }}</p>
-
-          <!-- ATTACHMENT -->
-          <p>
-            <b>Attachment:</b>
-            <span v-if="selectedRequest.filePath">
-              <a :href="'http://localhost:5000/uploads/' + selectedRequest.filePath"
-                 target="_blank"
-                 class="btn btn-sm btn-info me-2">View</a>
-
-              <a :href="'http://localhost:5000/uploads/' + selectedRequest.filePath"
-                 download
-                 class="btn btn-sm btn-success">Download</a>
-            </span>
-            <span v-else>-</span>
-          </p>
-
-        </div>
-
-        <button class="btn btn-secondary mt-2"
-          @click="selectedRequest=null">Close</button>
-
-      </div>
+    <!-- INITIAL STATE -->
+    <div v-if="!searched" class="text-center text-muted mt-5" style="font-size:15px;">
+      🔎 Enter a search value and click <strong>Search</strong> to view status.
     </div>
-
   </div>
 </template>
 
 <script>
-import axios from "axios";
+import axios from 'axios'
+
+const API = 'http://localhost:5000/api'
 
 export default {
+  name: 'StatusEnquiry',
+
   data() {
     return {
-      requests: [],
-      selectedRequest: null,
-      searchText: "",
-      searchStatus: ""
-    };
-  },
+      searchType: 'requestNo',
+      searchValue: '',
+      results: [],
+      searched: false,
 
-  computed: {
-    filteredRequests() {
-      return this.requests.filter(r =>
-        (
-          (r.partNo || "").toLowerCase().includes(this.searchText.toLowerCase()) ||
-          (r.customer || "").toLowerCase().includes(this.searchText.toLowerCase()) ||
-          (r.testType || "").toLowerCase().includes(this.searchText.toLowerCase())
-        ) &&
-        (this.searchStatus === "" || r.status === this.searchStatus)
-      );
+      // Status pipeline steps (in order)
+      steps: [
+        'PL Allocated',
+        'Datasheet Printed',
+        'Test In Progress',
+        'Report Generated',
+      ],
+
+      // Loaded from localStorage (same keys as DailyUpdate component)
+      monitoringCache: {},
+      reportCache: {},
     }
   },
 
   mounted() {
-    this.loadRequests();
+    this.loadCaches()
   },
 
   methods: {
-
-    statusClass(status) {
-      if (!status) return "pending";
-      const s = status.toLowerCase();
-
-      if (s === "approved") return "approved";
-      if (s === "rejected") return "rejected";
-      if (s === "completed") return "completed";
-
-      return "pending";
+    loadCaches() {
+      try {
+        const mc = localStorage.getItem('monitoringCache')
+        if (mc) this.monitoringCache = JSON.parse(mc)
+        const rc = localStorage.getItem('reportCache')
+        if (rc) this.reportCache = JSON.parse(rc)
+      } catch (e) {
+        console.warn('Cache load error', e)
+      }
     },
 
-    async loadRequests() {
-      const res = await axios.get("http://localhost:5000/api/requests");
-      this.requests = res.data;
+    async doSearch() {
+      this.searched = true
+      this.results = []
+      if (!this.searchValue.trim()) return
+
+      try {
+        // Fetch all requests then filter client-side
+        // (or pass query params if your backend supports it)
+        const res = await axios.get(`${API}/requests`)
+        const all = res.data || []
+
+        const val = this.searchValue.trim().toLowerCase()
+
+        this.results = all
+          .filter(r => {
+            if (this.searchType === 'requestNo')
+              return (r.requestNo || '').toLowerCase().includes(val)
+            if (this.searchType === 'plNo')
+              return (r.allocationPlNo || '').toLowerCase().includes(val)
+            if (this.searchType === 'partNo')
+              return (r.partNo || '').toLowerCase().includes(val)
+            return false
+          })
+          .map(r => ({
+            requestNo:   r.requestNo,
+            plNo:        r.allocationPlNo || '-',
+            partNo:      r.partNo || '-',
+            description: r.description || '-',
+            userName:    r.userName || '-',
+            status:      r.status || '',
+            // Derive pipeline flags from caches
+            hasMonitoring: !!this.monitoringCache[r.requestNo],
+            hasReport:     !!this.reportCache[r.requestNo],
+            monitoringPrinted: !!(this.monitoringCache[r.requestNo]?.printed),
+          }))
+      } catch (err) {
+        console.error('Search error:', err)
+        alert('Error fetching requests. Check console.')
+      }
     },
 
-    viewRequest(req) {
-      this.selectedRequest = req;
-    }
+    clearSearch() {
+      this.searchValue = ''
+      this.results = []
+      this.searched = false
+    },
 
-  }
-};
+    // ── Pipeline step index (0-based) ─────────────────────────
+    // Step 0 → PL Allocated      : request exists with a PL No
+    // Step 1 → Datasheet Printed : monitoring record saved
+    // Step 2 → Test In Progress  : monitoring exists (test running)
+    // Step 3 → Report Generated  : report record saved
+    getStepIndex(r) {
+      if (r.hasReport)     return 3
+      if (r.hasMonitoring) return 2   // datasheet saved = test in progress
+      if (r.plNo && r.plNo !== '-') return 0
+      return 0
+    },
+
+    currentStatusLabel(r) {
+      const idx = this.getStepIndex(r)
+      return this.steps[idx]
+    },
+
+    badgeClass(r) {
+      const idx = this.getStepIndex(r)
+      return {
+        0: 'bg-secondary',
+        1: 'bg-info text-dark',
+        2: 'bg-warning text-dark',
+        3: 'bg-success',
+      }[idx] || 'bg-secondary'
+    },
+  },
+}
 </script>
 
-<style>
-.title {
-  font-weight: bold;
+<style scoped>
+.search-card {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 20px 24px;
+  max-width: 700px;
+}
+.search-title {
+  font-weight: 700;
+  font-size: 15px;
+  color: #1a56a0;
+  letter-spacing: 1px;
+  border-bottom: 2px solid #1a56a0;
+  padding-bottom: 6px;
+  display: inline-block;
 }
 
-/* TABLE */
-.custom-table thead {
-  background: #2c3e50;
-  color: white;
-}
-
-/* STATUS COLORS */
-.badge-status {
-  padding: 5px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: bold;
-  color: white;
-}
-
-.pending {
-  background-color: #f1c40f;
-  color: black;
-}
-
-.approved {
-  background-color: #2ecc71;
-}
-
-.rejected {
-  background-color: #e74c3c;
-}
-
-.completed {
-  background-color: #3498db;
-}
-
-/* MODAL */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.6);
+/* ── Stepper ──────────────────────────────────────────────── */
+.stepper {
   display: flex;
-  justify-content: center;
+  align-items: flex-start;
+  gap: 0;
+}
+.step {
+  display: flex;
+  flex-direction: column;
   align-items: center;
+  position: relative;
+  flex: 1;
+  font-size: 10px;
+  text-align: center;
+}
+.step-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: bold;
+  border: 2px solid #ccc;
+  background: #fff;
+  color: #999;
+  z-index: 1;
+  position: relative;
+}
+.step-label {
+  margin-top: 3px;
+  font-size: 9.5px;
+  color: #777;
+  white-space: nowrap;
+}
+.step-line {
+  position: absolute;
+  top: 11px;
+  left: 50%;
+  width: 100%;
+  height: 2px;
+  background: #ccc;
+  z-index: 0;
 }
 
-.modal-box {
-  background: white;
-  padding: 20px;
-  width: 800px;
-  max-height: 90vh;
-  overflow-y: auto;
-  border-radius: 10px;
+/* Done steps */
+.step-done .step-dot {
+  background: #198754;
+  border-color: #198754;
+  color: #fff;
 }
+.step-done .step-label { color: #198754; font-weight: 600; }
+.step-done .step-line  { background: #198754; }
 
-.grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+/* Active step */
+.step-active .step-dot {
+  background: #ffc107;
+  border-color: #e0a800;
+  color: #333;
 }
+.step-active .step-label { color: #856404; font-weight: 700; }
+
+/* Pending steps */
+.step-pending .step-dot  { background: #fff; border-color: #ccc; color: #bbb; }
+.step-pending .step-label{ color: #bbb; }
+
+.badge { font-size: 12px; padding: 5px 10px; }
+.ms-2  { margin-left: 8px; }
 </style>

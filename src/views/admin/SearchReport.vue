@@ -341,6 +341,6 @@ ${postDataBlock}${failureBlock}
 </script>
 
 <style scoped>
-h2 { font-weight: bold; color: #2c3e50; }
+h2 { font-weight: bold; color: #2c3e50; }a
 .card { border-radius: 8px; }
 </style>
